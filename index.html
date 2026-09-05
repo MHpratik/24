@@ -1,645 +1,270 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full bg-[#0b0f17] text-slate-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic & Static Analysis Malware Report</title>
-    <!-- Tailwind CSS -->
+    <title>Forensic resources | Malware Triage Report</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Font: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Inter"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        matrix: {
-                            400: '#00ff66',
-                            500: '#00e65c',
-                            900: '#002b11',
-                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Matrix Hacker Glow & Glitch Animations */
-        .matrix-glow {
-            color: #00ff66;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.8), 0 0 20px rgba(0, 255, 102, 0.4);
-        }
-        .matrix-badge {
-            background: rgba(0, 25, 12, 0.9);
-            border: 1px solid rgba(0, 255, 102, 0.5);
-            box-shadow: 0 0 15px rgba(0, 255, 102, 0.25), inset 0 0 10px rgba(0, 255, 102, 0.1);
-        }
-        .matrix-badge:hover {
-            box-shadow: 0 0 25px rgba(0, 255, 102, 0.5), inset 0 0 15px rgba(0, 255, 102, 0.25);
-        }
-        .cert-badge {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            transition: all 0.2s ease-in-out;
-        }
-        .cert-badge:hover {
-            transform: translateY(-2px);
-        }
-        /* Custom ANY.RUN Status Box styling matching sandbox monitors */
-        .anyrun-status-box {
-            background-color: #090d16;
-            border: 1px solid #1e293b;
-        }
-        .scanline-effect {
-            position: relative;
-            overflow: hidden;
-        }
-        .scanline-effect::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 102, 0.05) 51%);
-            background-size: 100% 4px;
-            pointer-events: none;
-        }
-        .highlight-glow-amber {
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-        }
-        /* Editable Heading Focus Outline */
-        [contenteditable="true"]:focus {
-            outline: none;
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.5);
-            border-radius: 0.375rem;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f17; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased selection:bg-matrix-400 selection:text-black">
+<body class="h-full flex flex-col font-sans antialiased bg-[#0b0f17] text-slate-200 selection:bg-sky-500/20 selection:text-sky-200">
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none max-w-xs w-full"></div>
 
-    <!-- MAIN REPORT CONTENT -->
-    <div id="protected-report" class="h-full flex flex-col">
-        
-        <!-- Header Navbar -->
-        <header class="bg-slate-900 border-b border-slate-800">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-600/20">
-                        <i class="fa-solid fa-bug text-xl text-white"></i>
-                    </div>
-                    <div>
-                        <!-- Header Title -->
-                        <h1 class="font-bold text-base text-white leading-tight flex items-center gap-2">
-                            <span>Forensic resources</span>
-                        </h1>
-                        <!-- Matrix Animated Analyst Header -->
-                        <p class="text-xs text-slate-400 flex items-center gap-1.5">
-                            <span>Lead Analyst:</span>
-                            <span class="matrix-scramble font-mono text-matrix-400 font-bold tracking-wide matrix-glow cursor-pointer" title="Click to trigger Matrix decode animation">Pratik Ingale</span>
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span class="hidden sm:inline">Malware Detected</span>
+    <!-- TOP HEADER -->
+    <header class="bg-[#0f172a] border-b border-slate-800 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <h1 class="text-lg font-bold text-white tracking-tight">Forensic resources</h1>
+                    <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        Infected
+                    </span>
+                    <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        Password Protected
                     </span>
                 </div>
+                <p class="text-xs text-slate-400 mt-1">
+                    Lead Analyst: <span class="text-sky-400 font-medium">Pratik Ingale</span>
+                    <span class="text-slate-500 text-[11px] ml-1.5">(TryHackMe Top 2% &bull; CEH &bull; CHFI)</span>
+                </p>
             </div>
-        </header>
+            <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-folder-open text-[11px]"></i>
+                <span>Open MEGA Vault</span>
+            </a>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-            <!-- Analyst Profile & Certifications Bar -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center space-x-4">
-                    <div class="matrix-badge scanline-effect w-12 h-12 rounded-xl flex items-center justify-center text-matrix-400 text-xl font-mono font-bold flex-shrink-0 cursor-pointer" onclick="triggerAllScrambles()" title="Click to decode">
-                        <i class="fa-solid fa-terminal animate-pulse"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-semibold">Security Analyst</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-matrix-400 animate-ping"></span>
-                        </div>
-                        <h2 class="text-lg font-bold font-mono text-matrix-400 matrix-glow matrix-scramble cursor-pointer" onclick="triggerAllScrambles()">Pratik Ingale</h2>
-                    </div>
-                </div>
-
-                <!-- Certification & Skill Badges -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- Analysis Scope Badge -->
-                    <div class="cert-badge border border-amber-500/40 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-amber-500/10">
-                        <i class="fa-solid fa-microscope text-amber-400 text-sm"></i>
-                        <span>Dynamic & Static Analysis</span>
-                    </div>
-
-                    <!-- TryHackMe Top 2% -->
-                    <div class="cert-badge border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/10">
-                        <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
-                        <span>TryHackMe <span class="text-matrix-400 font-extrabold matrix-glow">Top 2%</span></span>
-                    </div>
-
-                    <!-- CEH Certified -->
-                    <div class="cert-badge border border-sky-500/40 text-sky-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-sky-500/10">
-                        <i class="fa-solid fa-user-shield text-sky-400 text-sm"></i>
-                        <span>CEH Certified</span>
-                    </div>
-
-                    <!-- CHFI Certified -->
-                    <div class="cert-badge border border-violet-500/40 text-violet-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-violet-500/10">
-                        <i class="fa-solid fa-magnifying-glass-chart text-violet-400 text-sm"></i>
-                        <span>CHFI Certified</span>
-                    </div>
-                </div>
+        <!-- 3 QUICK SUMMARY CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-[#111827] border border-slate-800 rounded-xl p-4">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 block">Target File</span>
+                <p class="text-sm font-semibold text-white font-mono mt-1 truncate" title="phishing and malware analysis">
+                    phishing and malware analysis
+                </p>
+                <span class="text-[11px] text-amber-400/90 font-mono mt-0.5 block">Encrypted ZIP Archive</span>
             </div>
 
-            <!-- Status Overview Card -->
-            <div class="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-900/40 rounded-2xl p-6 shadow-xl backdrop-blur-sm space-y-5">
-                <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                    
-                    <!-- Title & Direct Status Badges Below Name -->
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fa-solid fa-shield-virus text-2xl"></i>
-                        </div>
-                        <div class="space-y-3">
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <h2 class="text-xl font-bold text-white font-mono">phishing and malware analysis</h2>
-                                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-rose-600 text-white uppercase tracking-wider">Infected</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-1">Target File: <span class="text-slate-200 font-mono">phishing and malware analysis</span></p>
-                            </div>
-
-                            <!-- Status Badge Directly Below Name -->
-                            <div class="flex flex-wrap items-center gap-3 pt-1">
-                                <!-- STATUS: Infected -->
-                                <div class="anyrun-status-box px-4 py-2 rounded-xl flex flex-col justify-center border border-slate-800 shadow-md">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">STATUS</span>
-                                    <div class="flex items-center space-x-1.5 mt-1.5">
-                                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xs"></i>
-                                        <span class="text-rose-400 font-semibold text-sm">Infected</span>
-                                    </div>
-                                </div>
-
-                                <!-- ACCESS NOTE: Password Protected -->
-                                <div class="anyrun-status-box px-4 py-2 rounded-xl flex flex-col justify-center border border-slate-800 shadow-md">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">ACCESS NOTE</span>
-                                    <div class="flex items-center space-x-1.5 mt-1.5">
-                                        <i class="fa-solid fa-key text-amber-400 text-xs"></i>
-                                        <span class="text-amber-400 font-semibold text-sm">Password Protected</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Verified Analyst Badge -->
-                    <div class="flex flex-wrap gap-2 text-xs self-start">
-                        <div class="matrix-badge scanline-effect rounded-xl px-4 py-2.5 cursor-pointer transition shadow-lg" onclick="triggerAllScrambles()" title="Click to re-run Matrix animation">
-                            <span class="text-matrix-400 block text-[9px] uppercase font-mono font-bold tracking-widest opacity-80">VERIFIED ANALYST</span>
-                            <span class="matrix-scramble font-mono font-extrabold text-matrix-400 matrix-glow text-xs flex items-center gap-1.5 mt-0.5">
-                                <i class="fa-solid fa-terminal text-[10px] text-matrix-400 animate-pulse"></i>
-                                <span class="hacker-text">Pratik Ingale</span>
-                            </span>
-                        </div>
-                    </div>
-
-                </div>
+            <div class="bg-[#111827] border border-slate-800 rounded-xl p-4">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 block">Decoy Displayed</span>
+                <p class="text-sm font-semibold text-white font-mono mt-1 truncate" title="Payment-updated.pdf">
+                    Payment-updated.pdf
+                </p>
+                <span class="text-[11px] text-slate-400 mt-0.5 block">Fake Document Bait</span>
             </div>
 
-            <!-- FORENSIC RESOURCES SECTION -->
-            <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/30 border border-sky-500/30 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                    <div class="flex items-center space-x-3.5 flex-1">
-                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center text-2xl flex-shrink-0 shadow-lg shadow-sky-500/10">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <div class="flex-1">
-                            <!-- Editable Heading Group with Direct Edit Control -->
-                            <div class="flex items-center flex-wrap gap-2 group">
-                                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
-                                    <span id="forensic-heading-text" 
-                                          contenteditable="true" 
-                                          spellcheck="false" 
-                                          class="px-2 py-0.5 -ml-2 rounded font-mono font-bold tracking-tight text-white hover:bg-slate-800/80 transition cursor-text border border-transparent hover:border-sky-500/40" 
-                                          title="Click or use pencil to edit heading text">Forensic Resources</span>
-                                </h3>
-                                <!-- Edit & Save Actions -->
-                                <div class="flex items-center space-x-1.5">
-                                    <button onclick="startEditHeading()" 
-                                            id="edit-heading-btn"
-                                            class="text-slate-400 hover:text-sky-300 text-xs px-2 py-1 rounded bg-slate-800/70 border border-slate-700/80 transition flex items-center gap-1.5" 
-                                            title="Edit heading title">
-                                        <i class="fa-solid fa-pen-to-square text-[11px]"></i>
-                                        <span class="text-[11px] font-mono hidden sm:inline">Edit Heading</span>
-                                    </button>
-                                    <button onclick="saveEditedHeading()" 
-                                            id="save-heading-btn"
-                                            class="hidden text-emerald-300 hover:text-emerald-200 text-xs px-2 py-1 rounded bg-emerald-950/60 border border-emerald-500/40 transition flex items-center gap-1.5" 
-                                            title="Save changes">
-                                        <i class="fa-solid fa-check text-[11px]"></i>
-                                        <span class="text-[11px] font-mono">Save</span>
-                                    </button>
-                                </div>
-                                <span class="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded font-mono font-extrabold uppercase shadow-sm">MEGA Cloud</span>
-                                <span class="bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono px-2 py-0.5 rounded font-bold">Evidence Vault</span>
-                            </div>
-                            <p class="text-xs text-slate-400 mt-1">Download PCAP dumps, extracted credentials, and raw memory stream logs</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 self-start sm:self-auto flex items-center">
-                        <i class="fa-solid fa-folder-open mr-1.5"></i> Live Repository
-                    </span>
-                </div>
+            <div class="bg-[#111827] border border-slate-800 rounded-xl p-4">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 block">Verdict</span>
+                <p class="text-sm font-semibold text-rose-400 mt-1 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span>High Risk Trojan Dropper</span>
+                </p>
+                <span class="text-[11px] text-slate-400 mt-0.5 block">Multi-C2 Callback Activity</span>
+            </div>
+        </div>
 
-                <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="space-y-1 font-mono text-xs overflow-hidden w-full sm:w-auto">
-                        <span class="text-slate-400 font-bold block">MEGA Directory Link:</span>
-                        <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 underline truncate block font-mono text-xs">
-                            https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-2 w-full sm:w-auto flex-shrink-0">
-                        <button onclick="copyLink('https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2.5 rounded-lg text-xs font-mono font-medium border border-slate-700 transition flex-1 sm:flex-none justify-center">
-                            <i class="fa-regular fa-copy mr-1.5"></i> Copy Link
-                        </button>
-                        <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="bg-sky-600 hover:bg-sky-500 text-white font-mono font-bold text-xs px-4 py-2.5 rounded-lg transition flex-1 sm:flex-none justify-center text-center shadow-lg shadow-sky-600/20 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-external-link"></i>
-                            <span>Open MEGA Folder</span>
-                        </a>
-                    </div>
-                </div>
+        <!-- 1. FORENSIC RESOURCES (MEGA) -->
+        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-folder-tree text-sky-400"></i>
+                    <span>Forensic Resources Repository</span>
+                </h2>
+                <span class="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                    <i class="fa-solid fa-check text-[10px]"></i> Evidence Vaulted
+                </span>
             </div>
 
-            <!-- Section Title -->
-            <div class="flex items-center justify-between pt-2">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Sandbox Task URLs (Dynamic Analysis Runs)</h3>
-                <span class="text-xs text-slate-500">2 Tasks Loaded</span>
+            <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="space-y-0.5 overflow-hidden">
+                    <span class="text-[11px] text-slate-400 font-mono block">MEGA Directory Link:</span>
+                    <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-sky-400 hover:text-sky-300 underline truncate block">
+                        https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
+                    </a>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    <button onclick="copyText('https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded text-xs font-mono border border-slate-700 transition">
+                        <i class="fa-regular fa-copy mr-1"></i> Copy
+                    </button>
+                    <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium px-3 py-1.5 rounded transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Open
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ANY.RUN SANDBOX TASKS -->
+        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-flask-vial text-sky-400"></i>
+                    <span>Sandbox Detonation Tasks (ANY.RUN)</span>
+                </h2>
+                <span class="text-[11px] text-slate-400 font-mono">2 Runs Documented</span>
             </div>
 
-            <!-- Task Link Cards -->
-            <div class="space-y-4">
-                
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <!-- Task 1 -->
-                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-5 transition group">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 overflow-hidden">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <span class="text-xs font-semibold text-slate-400 uppercase font-mono">Task ID: 8bfd4c58-ec0d-4371-bfeb-52a334b69f59</span>
-                            </div>
-                            <a href="https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59" target="_blank" rel="noopener noreferrer" class="font-mono text-sm text-sky-400 group-hover:text-sky-300 hover:underline flex items-center space-x-2 truncate">
-                                <span class="truncate">https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs flex-shrink-0 opacity-70"></i>
-                            </a>
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3.5 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-mono font-medium text-slate-400">Task 1: Initial Detonation & Decoy</span>
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                         </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button onclick="copyLink('https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Link</span>
-                            </button>
-                            <a href="https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59" target="_blank" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-lg shadow-rose-600/20">
-                                <i class="fa-solid fa-external-link"></i>
-                                <span>Open Task</span>
-                            </a>
-                        </div>
+                        <p class="text-xs font-mono text-slate-300 mt-1 truncate">8bfd4c58-ec0d-4371-bfeb-52a334b69f59</p>
+                    </div>
+                    <div class="flex items-center space-x-2 pt-1 border-t border-slate-800/80">
+                        <button onclick="copyText('https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 rounded text-xs font-mono border border-slate-700 transition text-center">
+                            Copy Link
+                        </button>
+                        <a href="https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59" target="_blank" rel="noopener noreferrer" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-1.5 rounded text-xs font-medium transition text-center">
+                            Open Task
+                        </a>
                     </div>
                 </div>
 
                 <!-- Task 2 -->
-                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-5 transition group">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 overflow-hidden">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <span class="text-xs font-semibold text-slate-400 uppercase font-mono">Task ID: 82d8adc9-38a0-4f0e-a160-48a5e09a6e83</span>
-                            </div>
-                            <a href="https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83" target="_blank" rel="noopener noreferrer" class="font-mono text-sm text-sky-400 group-hover:text-sky-300 hover:underline flex items-center space-x-2 truncate">
-                                <span class="truncate">https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs flex-shrink-0 opacity-70"></i>
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button onclick="copyLink('https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Link</span>
-                            </button>
-                            <a href="https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83" target="_blank" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-lg shadow-rose-600/20">
-                                <i class="fa-solid fa-external-link"></i>
-                                <span>Open Task</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- URLhaus TRACKED MALICIOUS URLs TABLE SECTION -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-globe text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                <span>Tracked Malicious URLs</span>
-                                <span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-mono px-2 py-0.5 rounded font-extrabold">URLhaus (abuse.ch)</span>
-                            </h3>
-                            <p class="text-xs text-slate-400">10 Real active malware payload URLs suited for VirusTotal & ANY.RUN practical testing</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 self-start sm:self-auto">
-                        <i class="fa-solid fa-radiation mr-1"></i> Live Threat Feed
-                    </span>
-                </div>
-
-                <!-- Responsive Table -->
-                <div class="overflow-x-auto rounded-xl border border-slate-800">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] font-mono text-slate-400 uppercase">
-                                <th class="p-3 pl-4">#</th>
-                                <th class="p-3">Malicious URL</th>
-                                <th class="p-3">Malware Family</th>
-                                <th class="p-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-xs font-mono">
-                            
-                            <!-- 1 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">1</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://78.153.140.16/ph.sh</code>
-                                </td>
-                                <td class="p-3 font-semibold text-amber-400">Kinsing</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online (spreading 1mo+)
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 2 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">2</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://45.225.135.61/fhKfephsUsIUn0nQCUkuUU63.bin</code>
-                                </td>
-                                <td class="p-3 font-semibold text-violet-400">GuLoader / RemcosRAT</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 3 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">3</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://176.65.139.26/AV6</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 4 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">4</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://176.65.139.26/X</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 5 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">5</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://45.202.246.143/bins/payload.xml</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 6 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">6</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://90.224.208.161:48263/i</code>
-                                </td>
-                                <td class="p-3 font-semibold text-amber-300">(ELF botnet)</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online (spreading 1mo+)
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 7 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">7</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://156.226.174.195/arm6</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 8 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">8</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://78.142.229.7/2016Nwjsh4</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 9 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">9</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://84.200.87.36/nexuscorp.x86</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 10 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">10</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">https://csat.teleshoppe.com.sg/e6lh48l.rar</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-500">Dridex</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                                        Offline (scored on VT)
-                                    </span>
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- DYNAMIC AND STATIC ANALYSIS TUTORIAL SECTION -->
-            <div id="static-analysis-section" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-microscope text-lg"></i>
-                        </div>
-                        <div>
-                            <!-- Highlighted Dynamic and Static Analysis Header -->
-                            <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                <span>Step-by-Step</span>
-                                <span class="bg-gradient-to-r from-amber-400 via-emerald-400 to-rose-400 bg-clip-text text-transparent font-extrabold uppercase font-mono tracking-wider">Dynamic & Static Analysis</span>
-                                <span>Tutorial</span>
-                            </h3>
-                            <p class="text-xs text-slate-400">Guided procedure by <span class="matrix-scramble font-mono text-matrix-400 font-bold cursor-pointer" onclick="triggerAllScrambles()">Pratik Ingale</span></p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 self-start sm:self-auto">
-                        <i class="fa-solid fa-graduation-cap mr-1"></i> Malware Workflow
-                    </span>
-                </div>
-
-                <!-- Steps Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <!-- Step 1 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3.5 flex flex-col justify-between space-y-3">
+                    <div>
                         <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">1</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Initial Action</span>
+                            <span class="text-[11px] font-mono font-medium text-slate-400">Task 2: Persistence & Network C2</span>
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                         </div>
-                        <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
-                            <span>Click on</span>
-                            <span class="px-2 py-0.5 rounded text-xs bg-rose-600 text-white font-semibold inline-flex items-center gap-1 shadow-sm">
-                                <i class="fa-solid fa-external-link text-[10px]"></i> Open Task
-                            </span>
-                        </h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            For <strong class="text-amber-400 font-mono">Dynamic and Static Analysis</strong>, click the red <strong>Open Task</strong> button on any task card above to launch the interactive sandbox session.
-                        </p>
+                        <p class="text-xs font-mono text-slate-300 mt-1 truncate">82d8adc9-38a0-4f0e-a160-48a5e09a6e83</p>
                     </div>
-
-                    <!-- Step 2 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">2</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Sandbox Inspection</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white">Dynamic Execution & View</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            After opening, inspect live dynamic behavior (process tree execution, network calls, file payloads like <code class="text-rose-300 bg-slate-900 px-1 py-0.5 rounded font-mono">Payment-updated.pdf</code>).
-                        </p>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">3</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Hash Extraction</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white">Static File Hash Analysis</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Locate target sample details inside the indicators panel. Copy the <strong class="text-emerald-400 font-mono">MD5</strong> or <strong class="text-emerald-400 font-mono">SHA-256</strong> static checksum of the infected sample.
-                        </p>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">4</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Threat Intel Check</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
-                            <span>Search on</span>
-                            <span class="text-sky-400 font-bold font-mono">VirusTotal</span>
-                        </h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Go to <a href="https://www.virustotal.com/gui/home/search" target="_blank" class="text-sky-400 underline hover:text-sky-300 font-semibold">VirusTotal</a>, select the <strong>SEARCH</strong> tab, and paste the hash or URL to finalize threat intelligence cross-checking.
-                        </p>
-                    </div>
-
-                </div>
-
-                <!-- VirusTotal Quick Search Helper Card -->
-                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-sky-500/30 rounded-xl p-4 sm:p-5 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-sky-400 font-mono text-xs font-bold">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <span>VIRUSTOTAL QUICK SEARCH TOOL</span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-mono">Step 4 Helper</span>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="vt-hash-input" placeholder="Paste MD5 / SHA256 / URL here..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500">
-                        <button onclick="searchVirusTotal()" class="bg-sky-600 hover:bg-sky-500 text-white font-mono text-xs font-bold px-4 py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 shadow-lg shadow-sky-600/20">
-                            <i class="fa-solid fa-search"></i>
-                            <span>Search VT</span>
+                    <div class="flex items-center space-x-2 pt-1 border-t border-slate-800/80">
+                        <button onclick="copyText('https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 rounded text-xs font-mono border border-slate-700 transition text-center">
+                            Copy Link
                         </button>
+                        <a href="https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83" target="_blank" rel="noopener noreferrer" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-1.5 rounded text-xs font-medium transition text-center">
+                            Open Task
+                        </a>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Raw Text Box Summary -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
-                <h4 class="text-xs font-semibold text-slate-400 uppercase">Extracted Raw Text & Report Notes</h4>
-                <pre id="raw-summary-box" class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800/80 overflow-x-auto selection:bg-matrix-400 selection:text-black">Dynamic and Static Analysis
+        <!-- 3. TRACKED MALICIOUS INDICATORS (URLHAUS) -->
+        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                        <i class="fa-solid fa-shield-virus text-rose-400"></i>
+                        <span>10 Tracked Malicious Indicators (URLhaus)</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Active malware payload and botnet endpoints identified during triage.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleDefang()" id="defang-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1 rounded text-xs font-mono transition">
+                        Defang: Active [.]
+                    </button>
+                    <button onclick="copyAllIocs()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1 rounded text-xs font-mono transition">
+                        Copy All 10
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono border-collapse">
+                    <thead>
+                        <tr class="text-[11px] text-slate-400 border-b border-slate-800 uppercase">
+                            <th class="py-2.5 px-2 w-8">#</th>
+                            <th class="py-2.5 px-2">Malicious URL</th>
+                            <th class="py-2.5 px-2">Family</th>
+                            <th class="py-2.5 px-2">Status</th>
+                            <th class="py-2.5 px-2 text-right">VT Check</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ioc-tbody" class="divide-y divide-slate-800/70">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. STEP-BY-STEP ANALYSIS WORKFLOW & VIRUSTOTAL -->
+        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-4">
+            <h2 class="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-sky-400"></i>
+                <span>Dynamic & Static Analysis Workflow</span>
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3 space-y-1">
+                    <span class="text-[10px] font-mono text-sky-400 font-bold block">STEP 01</span>
+                    <h3 class="text-xs font-semibold text-white">Click Open Task</h3>
+                    <p class="text-[11px] text-slate-400 leading-normal">Open the ANY.RUN link to launch the interactive sandbox.</p>
+                </div>
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3 space-y-1">
+                    <span class="text-[10px] font-mono text-sky-400 font-bold block">STEP 02</span>
+                    <h3 class="text-xs font-semibold text-white">View Sandbox Activity</h3>
+                    <p class="text-[11px] text-slate-400 leading-normal">Observe decoy PDF (<span class="font-mono text-slate-300">Payment-updated.pdf</span>) and child processes.</p>
+                </div>
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3 space-y-1">
+                    <span class="text-[10px] font-mono text-sky-400 font-bold block">STEP 03</span>
+                    <h3 class="text-xs font-semibold text-white">Copy File Hash</h3>
+                    <p class="text-[11px] text-slate-400 leading-normal">Extract MD5 or SHA-256 hash from sandbox indicators panel.</p>
+                </div>
+                <div class="bg-[#0b0f17] border border-slate-800 rounded-lg p-3 space-y-1">
+                    <span class="text-[10px] font-mono text-sky-400 font-bold block">STEP 04</span>
+                    <h3 class="text-xs font-semibold text-white">Search VirusTotal</h3>
+                    <p class="text-[11px] text-slate-400 leading-normal">Paste hash or URL into VirusTotal for community detection.</p>
+                </div>
+            </div>
+
+            <!-- VirusTotal Query Input -->
+            <div class="pt-2">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="vt-input" placeholder="Enter hash (MD5/SHA256) or URL to search VirusTotal..." class="flex-1 bg-[#0b0f17] border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                    <button onclick="runVtQuery()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                        <span>Search VT</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. RAW INCIDENT NOTES (EASY COPY) -->
+        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard text-sky-400"></i>
+                    <span>Ticket Raw Notes</span>
+                </h2>
+                <button onclick="copyRawLog()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1 rounded text-xs font-mono transition">
+                    <i class="fa-regular fa-copy mr-1"></i> Copy Notes
+                </button>
+            </div>
+            <pre id="raw-log" class="bg-[#0b0f17] p-3.5 rounded-lg text-xs font-mono text-slate-300 border border-slate-800 overflow-x-auto select-all leading-relaxed">Dynamic and Static Analysis
 Lead Analyst: Pratik Ingale | TryHackMe Top 2% | CEH & CHFI Certified
 
 --- FORENSIC RESOURCES ---
@@ -668,243 +293,121 @@ https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83
 
 file - phishing and malware analysis
 STATUS: Infected -- Password Protected</pre>
-            </div>
+        </div>
 
-        </main>
+    </main>
 
-        <!-- Footer -->
-        <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-500">
-            <p>Dynamic and Static Analysis Task Hub — Prepared by <span class="matrix-scramble text-matrix-400 font-mono font-bold cursor-pointer">Pratik Ingale</span> (CEH | CHFI | THM Top 2%)</p>
-        </footer>
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 bg-[#0f172a] py-4 text-center text-xs text-slate-500 font-mono">
+        Forensic resources &bull; Prepared by Pratik Ingale (CEH &bull; CHFI &bull; TryHackMe Top 2%)
+    </footer>
 
-    </div>
-
-    <!-- Hacker Matrix Text Animation Logic -->
+    <!-- LOGIC -->
     <script>
+        const IOCS = [
+            { id: 1, url: "http://78.153.140.16/ph.sh", family: "Kinsing", status: "Online" },
+            { id: 2, url: "http://45.225.135.61/fhKfephsUsIUn0nQCUkuUU63.bin", family: "GuLoader / RemcosRAT", status: "Online" },
+            { id: 3, url: "http://176.65.139.26/AV6", family: "Mirai", status: "Online" },
+            { id: 4, url: "http://176.65.139.26/X", family: "Gafgyt", status: "Online" },
+            { id: 5, url: "http://45.202.246.143/bins/payload.xml", family: "Mirai", status: "Online" },
+            { id: 6, url: "http://90.224.208.161:48263/i", family: "(ELF botnet)", status: "Online" },
+            { id: 7, url: "http://156.226.174.195/arm6", family: "Mirai", status: "Online" },
+            { id: 8, url: "http://78.142.229.7/2016Nwjsh4", family: "Gafgyt", status: "Online" },
+            { id: 9, url: "http://84.200.87.36/nexuscorp.x86", family: "Gafgyt", status: "Online" },
+            { id: 10, url: "https://csat.teleshoppe.com.sg/e6lh48l.rar", family: "Dridex", status: "Offline" }
+        ];
+
+        let isDefanged = true;
+
         document.addEventListener('DOMContentLoaded', () => {
-            initScramblers();
-            initHeadingEditor();
+            renderTable();
         });
 
-        const MATRIX_CHARS = "01010101ABCDEFGHJKLMNOPQRSTUVWXYZｦｱｳｴｵｶｷｹｺｻｼｽｾｿﾀﾂﾃﾅﾆﾇﾈﾊﾋﾎﾏﾐﾑﾒﾓﾔﾕﾗﾘﾜ#$@%&*<>/\\";
-        const TARGET_NAME = "Pratik Ingale";
+        function defang(str) {
+            return str
+                .replace(/^https?:\/\//i, (m) => m.toLowerCase().startsWith('https') ? 'hxxps://' : 'hxxp://')
+                .replace(/\./g, '[.]');
+        }
 
-        class TextScramble {
-            constructor(el) {
-                this.el = el;
-                this.chars = MATRIX_CHARS;
-                this.update = this.update.bind(this);
-            }
+        function toggleDefang() {
+            isDefanged = !isDefanged;
+            document.getElementById('defang-btn').innerText = isDefanged ? "Defang: Active [.]" : "Defang: Raw URLs";
+            renderTable();
+            showToast(isDefanged ? "Masked with [.] and hxxp" : "Showing raw URLs");
+        }
 
-            setText(newText) {
-                const oldText = this.el.innerText;
-                const length = Math.max(oldText.length, newText.length);
-                const promise = new Promise((resolve) => this.resolve = resolve);
-                this.queue = [];
-                for (let i = 0; i < length; i++) {
-                    const from = oldText[i] || '';
-                    const to = newText[i] || '';
-                    const start = Math.floor(Math.random() * 15);
-                    const end = start + Math.floor(Math.random() * 15) + 10;
-                    this.queue.push({ from, to, start, end, char: '' });
-                }
-                cancelAnimationFrame(this.frameRequest);
-                this.frame = 0;
-                this.update();
-                return promise;
-            }
+        function renderTable() {
+            const tbody = document.getElementById('ioc-tbody');
+            if (!tbody) return;
 
-            update() {
-                let output = '';
-                let complete = 0;
-                for (let i = 0, n = this.queue.length; i < n; i++) {
-                    let { from, to, start, end, char } = this.queue[i];
-                    if (this.frame >= end) {
-                        complete++;
-                        output += to;
-                    } else if (this.frame >= start) {
-                        if (!char || Math.random() < 0.28) {
-                            char = this.randomChar();
-                            this.queue[i].char = char;
-                        }
-                        output += `<span class="text-matrix-400 opacity-90">${char}</span>`;
-                    } else {
-                        output += from;
-                    }
-                }
-                this.el.innerHTML = output;
-                if (complete === this.queue.length) {
-                    this.resolve();
-                } else {
-                    this.frameRequest = requestAnimationFrame(this.update);
-                    this.frame++;
-                }
-            }
+            tbody.innerHTML = IOCS.map(ioc => {
+                const displayUrl = isDefanged ? defang(ioc.url) : ioc.url;
+                const statusBadge = ioc.status === 'Online'
+                    ? '<span class="text-emerald-400 font-semibold">&bull; Online</span>'
+                    : '<span class="text-slate-500 font-semibold">&bull; Offline</span>';
 
-            randomChar() {
-                return this.chars[Math.floor(Math.random() * this.chars.length)];
+                return `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-2.5 px-2 text-slate-500">${ioc.id}</td>
+                        <td class="py-2.5 px-2 text-rose-300 break-all select-all">${displayUrl}</td>
+                        <td class="py-2.5 px-2 text-slate-300 font-sans font-medium">${ioc.family}</td>
+                        <td class="py-2.5 px-2">${statusBadge}</td>
+                        <td class="py-2.5 px-2 text-right">
+                            <button onclick="openVt('${ioc.url}')" class="text-sky-400 hover:text-sky-300 bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-[11px] transition">
+                                VT
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openVt(url) {
+            window.open(`https://www.virustotal.com/gui/search/${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function runVtQuery() {
+            const q = document.getElementById('vt-input').value.trim();
+            if (q) {
+                window.open(`https://www.virustotal.com/gui/search/${encodeURIComponent(q)}`, '_blank');
+            } else {
+                showToast("Please enter a hash or URL");
             }
         }
 
-        let scramblers = [];
-
-        function initScramblers() {
-            if (scramblers.length > 0) return;
-            const elements = document.querySelectorAll('.matrix-scramble');
-            elements.forEach(el => {
-                const fx = new TextScramble(el);
-                scramblers.push(fx);
-                fx.setText(TARGET_NAME);
-
-                el.addEventListener('mouseenter', () => {
-                    fx.setText(TARGET_NAME);
-                });
-                el.addEventListener('click', () => {
-                    fx.setText(TARGET_NAME);
-                });
-            });
-
-            // Periodically re-trigger Matrix animation every 8 seconds
-            setInterval(() => {
-                scramblers.forEach(fx => fx.setText(TARGET_NAME));
-            }, 8000);
+        function copyText(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Copied to clipboard");
         }
 
-        function triggerAllScrambles() {
-            scramblers.forEach(fx => fx.setText(TARGET_NAME));
+        function copyAllIocs() {
+            const lines = IOCS.map(i => `${isDefanged ? defang(i.url) : i.url} (${i.family} - ${i.status})`).join('\n');
+            copyText(lines);
         }
 
-        /* In-App Toast Notification (Zero Alert Usage) */
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
+        function copyRawLog() {
+            const log = document.getElementById('raw-log').innerText;
+            copyText(log);
+        }
 
-            const toast = document.createElement('div');
-            const colorClass = type === 'success' 
-                ? 'bg-slate-900 border-emerald-500/50 text-emerald-300' 
-                : (type === 'warning' ? 'bg-slate-900 border-amber-500/50 text-amber-300' : 'bg-slate-900 border-sky-500/50 text-sky-300');
-            const iconClass = type === 'success' 
-                ? 'fa-circle-check text-emerald-400' 
-                : (type === 'warning' ? 'fa-triangle-exclamation text-amber-400' : 'fa-circle-info text-sky-400');
+        function showToast(msg) {
+            const box = document.getElementById('toast-container');
+            if (!box) return;
 
-            toast.className = `${colorClass} pointer-events-auto border rounded-xl px-4 py-3 shadow-2xl flex items-center space-x-3 text-xs font-mono transition-all duration-300 transform translate-y-2 opacity-0`;
-            toast.innerHTML = `
-                <i class="fa-solid ${iconClass} text-sm flex-shrink-0"></i>
-                <span class="flex-1">${message}</span>
-            `;
+            const t = document.createElement('div');
+            t.className = "bg-slate-900 border border-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-mono shadow-xl transition-opacity duration-200 pointer-events-auto flex items-center gap-2";
+            t.innerHTML = `<i class="fa-solid fa-check text-emerald-400 text-xs"></i><span>${msg}</span>`;
 
-            container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
-
+            box.appendChild(t);
             setTimeout(() => {
-                toast.classList.add('opacity-0', '-translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        /* Heading Editor Functions */
-        function initHeadingEditor() {
-            const headingEl = document.getElementById('forensic-heading-text');
-            if (!headingEl) return;
-
-            // Load saved heading from localStorage if present
-            const savedHeading = localStorage.getItem('forensic_section_heading');
-            if (savedHeading) {
-                headingEl.innerText = savedHeading;
-                syncRawSummaryHeading(savedHeading);
-            }
-
-            headingEl.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    saveEditedHeading();
-                }
-            });
-
-            headingEl.addEventListener('focus', () => {
-                document.getElementById('edit-heading-btn').classList.add('hidden');
-                document.getElementById('save-heading-btn').classList.remove('hidden');
-            });
-        }
-
-        function startEditHeading() {
-            const headingEl = document.getElementById('forensic-heading-text');
-            if (!headingEl) return;
-            headingEl.focus();
-
-            // Select all text inside heading
-            const range = document.createRange();
-            range.selectNodeContents(headingEl);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-
-            document.getElementById('edit-heading-btn').classList.add('hidden');
-            document.getElementById('save-heading-btn').classList.remove('hidden');
-        }
-
-        function saveEditedHeading() {
-            const headingEl = document.getElementById('forensic-heading-text');
-            if (!headingEl) return;
-
-            const newHeading = headingEl.innerText.trim();
-            if (!newHeading) {
-                headingEl.innerText = "Forensic Resources";
-                showNotification('Heading cannot be empty; restored default name.', 'warning');
-            } else {
-                localStorage.setItem('forensic_section_heading', newHeading);
-                syncRawSummaryHeading(newHeading);
-                showNotification(`Heading updated to "${newHeading}"`, 'success');
-            }
-
-            headingEl.blur();
-            document.getElementById('edit-heading-btn').classList.remove('hidden');
-            document.getElementById('save-heading-btn').classList.add('hidden');
-        }
-
-        function syncRawSummaryHeading(headingText) {
-            const rawBox = document.getElementById('raw-summary-box');
-            if (rawBox) {
-                const upperText = headingText.toUpperCase();
-                rawBox.textContent = rawBox.textContent.replace(/--- FORENSIC RESOURCES.*?---/, `--- ${upperText} ---`);
-            }
-        }
-
-        function copyLink(text, btn) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Copied!</span>`;
-                showNotification('Link copied to clipboard!', 'success');
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                }, 2000);
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Copied!</span>`;
-                showNotification('Link copied to clipboard!', 'success');
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                }, 2000);
-            });
-        }
-
-        function searchVirusTotal() {
-            const query = document.getElementById('vt-hash-input').value.trim();
-            if (query) {
-                window.open(`https://www.virustotal.com/gui/search/${encodeURIComponent(query)}`, '_blank');
-            } else {
-                showNotification('Please enter or paste an MD5, SHA256 file hash, or URL.', 'warning');
-            }
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 200);
+            }, 2500);
         }
     </script>
 </body>
