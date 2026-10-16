@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phishing &amp; Malware Analysis Hub | Shadow Monarch Guild Archives</title>
+<title>Phishing &amp; Malware Analysis Hub | iPratik404</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -32,7 +32,8 @@
         fontFamily: {
           display: ['Cinzel', 'serif'],
           heading: ['Rajdhani', 'sans-serif'],
-          sans: ['Inter', 'sans-serif']
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace']
         },
         boxShadow: {
           'mana': '0 0 35px rgba(0, 240, 255, 0.4)',
@@ -50,9 +51,9 @@
     color: #f1f5f9;
     font-family: 'Inter', sans-serif;
     background-image: 
-      radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
+      radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 60%);
     background-attachment: fixed;
     overflow-x: hidden;
   }
@@ -67,6 +68,7 @@
     top: -1px; left: -1px; width: 12px; height: 12px;
     border-top: 2px solid #00f0ff; border-left: 2px solid #00f0ff;
     box-shadow: 0 0 8px #00f0ff;
+    z-index: 10;
   }
   .mana-border::after {
     content: '';
@@ -74,6 +76,7 @@
     bottom: -1px; right: -1px; width: 12px; height: 12px;
     border-bottom: 2px solid #00f0ff; border-right: 2px solid #00f0ff;
     box-shadow: 0 0 8px #00f0ff;
+    z-index: 10;
   }
 
   .shadow-card {
@@ -86,11 +89,11 @@
   .shadow-card:hover {
     border-color: rgba(168, 85, 247, 0.8);
     box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
 
   .scanlines {
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.008), rgba(0, 0, 255, 0.01));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.008), rgba(0, 0, 255, 0.01));
     background-size: 100% 4px, 6px 100%;
     pointer-events: none;
   }
@@ -167,7 +170,7 @@
         </div>
       </div>
       <strong class="text-xs font-heading font-bold text-purple-400 uppercase tracking-widest mt-1 mb-2">Navigation System</strong>
-      <a href="#summary" class="toc-link py-2 px-3 rounded-xl text-sm font-sans text-slate-300 hover:text-cyan-300 hover:bg-purple-950/40 border-l-2 border-transparent transition-all">Mission Briefing</a>
+      <a href="#summary" class="toc-link py-2 px-3 rounded-xl text-sm font-sans text-slate-300 hover:text-cyan-300 hover:bg-purple-950/40 border-l-2 border-transparent transition-all">Mission Matrix</a>
       <a href="#tasks" class="toc-link py-2 px-3 rounded-xl text-sm font-sans text-slate-300 hover:text-cyan-300 hover:bg-purple-950/40 border-l-2 border-transparent transition-all">Gate Raids</a>
       <a href="#hybrid" class="toc-link py-2 px-3 rounded-xl text-sm font-sans text-slate-300 hover:text-cyan-300 hover:bg-purple-950/40 border-l-2 border-transparent transition-all">Hybrid Analysis</a>
       <a href="#feed" class="toc-link py-2 px-3 rounded-xl text-sm font-sans text-slate-300 hover:text-cyan-300 hover:bg-purple-950/40 border-l-2 border-transparent transition-all">Threat Index</a>
@@ -182,32 +185,63 @@
     <!-- Main Content Area with Staggered Entrance -->
     <main class="space-y-12 load-stagger">
       
-      <!-- HEADER -->
-      <header class="shadow-card p-8 sm:p-12 rounded-3xl mana-border relative overflow-hidden">
-        <div class="absolute -right-16 -top-16 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none aura-glow"></div>
-        <div class="absolute left-10 bottom-0 w-72 h-72 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none aura-glow"></div>
+      <!-- HEADER WITH LIVE ANIMATED MANA MATRIX CANVAS (INTRO TEXT REMOVED) -->
+      <header class="shadow-card p-4 sm:p-6 rounded-3xl mana-border relative overflow-hidden flex flex-col justify-between min-h-[360px]">
         
-        <div class="relative z-10">
-          <div class="inline-flex items-center gap-2.5 bg-red-500/15 text-red-400 border border-red-500/40 font-heading font-bold text-xs uppercase tracking-wider px-4 py-1.5 rounded-full mb-6 shadow-danger-glow">
+        <!-- Live Visual Canvas Overlay -->
+        <div class="absolute inset-0 z-0">
+          <canvas id="manaMatrixCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+        </div>
+
+        <!-- Background Ambient Glows -->
+        <div class="absolute -right-16 -top-16 w-72 h-72 bg-purple-600/15 rounded-full blur-3xl pointer-events-none aura-glow z-0"></div>
+        <div class="absolute left-10 bottom-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none aura-glow z-0"></div>
+
+        <!-- Top Header Status Bar -->
+        <div class="relative z-10 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
+          <div class="inline-flex items-center gap-2.5 bg-red-500/15 text-red-400 border border-red-500/40 font-heading font-bold text-xs uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-danger-glow backdrop-blur-md">
             <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-            RED GATE ALERT: CURSED PAYLOADS ENCOUNTERED
+            RED GATE ALERT: LIVE THREAT MATRIX
           </div>
-          
-          <p class="lede text-slate-300 text-base sm:text-lg max-w-2xl font-sans leading-relaxed">
-            Hello, I’m Pratik Ingale, a cybersecurity enthusiast with a strong interest in ethical hacking, digital forensics, and incident response. I hold the CEH (Certified Ethical Hacker) and CHFI (Computer Hacking Forensic Investigator) certifications. I’m passionate about identifying security vulnerabilities, investigating cyber threats, and understanding modern attack techniques. Through hands-on practice and continuous learning, I aim to strengthen my technical expertise and build a career in cybersecurity.
+
+          <div class="flex items-center gap-2 font-mono text-xs bg-slate-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-full text-cyan-300 backdrop-blur-md">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            FPS: <span id="fpsCounter" class="font-bold text-white">60</span>
+            <span class="text-slate-500">|</span>
+            NODES: <span id="nodeCount" class="font-bold text-purple-300">0</span>
+          </div>
+        </div>
+
+        <!-- Center Overlay Interactive Indicator -->
+        <div class="relative z-10 my-auto text-center pointer-events-none py-6">
+          <h1 class="font-display font-black text-2xl sm:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-cyan-200 tracking-wider uppercase drop-shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+            SHADOW MONARCH MATRIX
+          </h1>
+          <p class="font-mono text-xs sm:text-sm text-purple-300/80 mt-1 uppercase tracking-widest">
+            REAL-TIME INTEL SCANNER &bull; INTERACTIVE NODE NETWORK
           </p>
-          
-          <div class="byline mt-6 pt-6 border-t border-purple-500/20 text-xs sm:text-sm text-slate-300 flex flex-wrap items-center gap-4 font-mono">
-            <div>COMMANDER: <b class="text-cyan-300 font-bold">PRATIK INGALE</b> (Lead Hunter)</div>
-            <div class="px-3 py-1 rounded-lg bg-purple-950/80 border border-purple-500/50 text-purple-300 shadow-shadow-monarch">THM Top 2% ⚡</div>
-            <div class="px-3 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 shadow-mana">S-RANK // CEH &amp; CHFI</div>
+        </div>
+        
+        <!-- Bottom Header Meta Bar -->
+        <div class="relative z-10 pt-4 border-t border-purple-500/20 text-xs sm:text-sm text-slate-300 flex flex-wrap items-center justify-between gap-4 font-mono backdrop-blur-sm bg-slate-950/40 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 p-4 rounded-b-3xl">
+          <div class="flex items-center gap-2">
+            COMMANDER: <b class="text-cyan-300 font-bold">PRATIK INGALE</b>
+            <span class="text-slate-500 font-normal hidden sm:inline">(CEH &bull; CHFI)</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="px-2.5 py-1 rounded-lg bg-purple-950/80 border border-purple-500/50 text-purple-300 shadow-shadow-monarch text-xs">
+              THM Top 2% ⚡
+            </div>
+            <div class="px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 shadow-mana text-xs">
+              S-RANK // ACTIVE MONITORING
+            </div>
           </div>
         </div>
       </header>
 
       <section id="summary" class="space-y-6">
         <div>
-          <h2 class="font-display font-bold text-2xl sm:text-3xl text-white">Mission Summary</h2>
+          <h2 class="font-display font-bold text-2xl sm:text-3xl text-white">Mission Matrix</h2>
           <p class="sub text-slate-400 text-sm mt-1">Live behavior traces, outbound spirit connections, and dropped physical payloads like <code>Payment-updated.pdf</code> captured during active raids.</p>
         </div>
 
@@ -327,8 +361,8 @@
           <h2 class="font-display font-bold text-2xl sm:text-3xl text-white">Monster Threat Index</h2>
           <p class="sub text-slate-400 text-sm mt-1">Ten hazardous payload URLs tracked by URLhaus (abuse.ch). Do not trigger without mana protection.</p>
         </div>
-        <div class="table-wrap rounded-2xl overflow-hidden shadow-card border border-purple-500/30">
-          <table>
+        <div class="table-wrap rounded-2xl overflow-hidden shadow-card border border-purple-500/30 overflow-x-auto">
+          <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-900/90 text-cyan-300 font-heading">
                 <th class="py-3 px-4">#</th>
@@ -573,6 +607,247 @@
       toast('🌙 Shadow Monarch Dark Aura activated');
     }
   });
+
+  /* LIVE ANIMATED MANA NODE CANVAS SYSTEM */
+  var canvas = $('#manaMatrixCanvas');
+  var ctx = canvas.getContext('2d');
+  var fpsEl = $('#fpsCounter');
+  var nodeEl = $('#nodeCount');
+
+  var width, height;
+  var nodes = [];
+  var lasers = [];
+  var packets = [];
+  var mouse = { x: -1000, y: -1000, radius: 140 };
+  var lastFrame = performance.now();
+  var frameCount = 0;
+  var fps = 60;
+
+  function resizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    width = canvas.width = rect.width;
+    height = canvas.height = rect.height;
+    initNodes();
+  }
+
+  function initNodes() {
+    nodes = [];
+    var count = Math.floor((width * height) / 4500);
+    count = Math.max(25, Math.min(count, 70));
+    
+    var types = ['normal', 'threat', 'gate'];
+
+    for (var i = 0; i < count; i++) {
+      var type = types[Math.floor(Math.random() * types.length)];
+      nodes.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        radius: type === 'gate' ? 3.5 : (type === 'threat' ? 2.5 : 2),
+        type: type,
+        pulse: Math.random() * Math.PI * 2,
+        label: type === 'threat' ? 'MALWARE' : (type === 'gate' ? 'GATE' : '')
+      });
+    }
+    if (nodeEl) nodeEl.textContent = nodes.length;
+  }
+
+  // Mouse interactivity
+  canvas.addEventListener('mousemove', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+
+  canvas.addEventListener('mouseleave', function() {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+
+  // Laser scanner
+  var scanY = 0;
+  var scanSpeed = 1.2;
+
+  function createPacket(n1, n2) {
+    if (Math.random() < 0.05) {
+      packets.push({
+        x: n1.x,
+        y: n1.y,
+        tx: n2.x,
+        ty: n2.y,
+        progress: 0,
+        speed: 0.02 + Math.random() * 0.03,
+        color: n1.type === 'threat' ? '#ef4444' : '#00f0ff'
+      });
+    }
+  }
+
+  function renderManaMatrix(now) {
+    var delta = now - lastFrame;
+    frameCount++;
+    if (delta >= 1000) {
+      fps = Math.round((frameCount * 1000) / delta);
+      if (fpsEl) fpsEl.textContent = fps;
+      frameCount = 0;
+      lastFrame = now;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Matrix Grid Lines
+    ctx.strokeStyle = 'rgba(29, 53, 112, 0.15)';
+    ctx.lineWidth = 1;
+    var gridSize = 30;
+    for (var x = 0; x < width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (var y = 0; y < height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    // Horizontal Laser Scan Effect
+    scanY += scanSpeed;
+    if (scanY > height) scanY = 0;
+
+    var gradient = ctx.createLinearGradient(0, scanY - 15, 0, scanY + 5);
+    gradient.addColorStop(0, 'rgba(0, 240, 255, 0)');
+    gradient.addColorStop(0.5, 'rgba(0, 240, 255, 0.25)');
+    gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, scanY - 15, width, 20);
+
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, scanY);
+    ctx.lineTo(width, scanY);
+    ctx.stroke();
+
+    // Update & Draw Nodes
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+
+      if (n.x < 0 || n.x > width) n.vx *= -1;
+      if (n.y < 0 || n.y > height) n.vy *= -1;
+
+      // Mouse repulsion
+      var dx = n.x - mouse.x;
+      var dy = n.y - mouse.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < mouse.radius) {
+        var angle = Math.atan2(dy, dx);
+        var force = (mouse.radius - dist) / mouse.radius;
+        n.x += Math.cos(angle) * force * 3;
+        n.y += Math.sin(angle) * force * 3;
+      }
+
+      n.pulse += 0.03;
+      var currentR = n.radius + Math.sin(n.pulse) * 0.8;
+
+      // Draw Connections
+      for (var j = i + 1; j < nodes.length; j++) {
+        var n2 = nodes[j];
+        var cdx = n.x - n2.x;
+        var cdy = n.y - n2.y;
+        var cdist = Math.sqrt(cdx * cdx + cdy * cdy);
+
+        if (cdist < 110) {
+          ctx.beginPath();
+          ctx.moveTo(n.x, n.y);
+          ctx.lineTo(n2.x, n2.y);
+
+          var alpha = (1 - cdist / 110) * 0.35;
+          if (n.type === 'threat' || n2.type === 'threat') {
+            ctx.strokeStyle = 'rgba(239, 68, 68, ' + alpha + ')';
+          } else if (n.type === 'gate' || n2.type === 'gate') {
+            ctx.strokeStyle = 'rgba(168, 85, 247, ' + alpha + ')';
+          } else {
+            ctx.strokeStyle = 'rgba(0, 240, 255, ' + alpha + ')';
+          }
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          createPacket(n, n2);
+        }
+      }
+
+      // Draw Node Outer Pulse
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, currentR * 2, 0, Math.PI * 2);
+      if (n.type === 'threat') {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+      } else if (n.type === 'gate') {
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
+      } else {
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+      }
+      ctx.fill();
+
+      // Draw Node Center
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, currentR, 0, Math.PI * 2);
+      if (n.type === 'threat') {
+        ctx.fillStyle = '#ef4444';
+        ctx.shadowColor = '#ef4444';
+      } else if (n.type === 'gate') {
+        ctx.fillStyle = '#a855f7';
+        ctx.shadowColor = '#a855f7';
+      } else {
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+      }
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Draw Labels
+      if (n.label) {
+        ctx.font = '8px "JetBrains Mono", monospace';
+        ctx.fillStyle = n.type === 'threat' ? '#fca5a5' : '#d8b4fe';
+        ctx.fillText(n.label, n.x + 6, n.y + 3);
+      }
+    }
+
+    // Render Data Packets
+    for (var k = packets.length - 1; k >= 0; k--) {
+      var p = packets[k];
+      p.progress += p.speed;
+      if (p.progress >= 1) {
+        packets.splice(k, 1);
+        continue;
+      }
+      var px = p.x + (p.tx - p.x) * p.progress;
+      var py = p.y + (p.ty - p.y) * p.progress;
+
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    requestAnimationFrame(renderManaMatrix);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  
+  // Initialize canvas after DOM loads
+  setTimeout(function() {
+    resizeCanvas();
+    requestAnimationFrame(renderManaMatrix);
+  }, 100);
+
 })();
 </script>
 </body>
