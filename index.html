@@ -1,611 +1,419 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Forensic Analysis</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        matrix: {
-                            400: '#00ff66',
-                            500: '#00e65c',
-                            900: '#002b11',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Matrix Hacker Glow & Glitch Animations */
-        .matrix-glow {
-            color: #00ff66;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.8), 0 0 20px rgba(0, 255, 102, 0.4);
-        }
-        .matrix-badge {
-            background: rgba(0, 25, 12, 0.9);
-            border: 1px solid rgba(0, 255, 102, 0.5);
-            box-shadow: 0 0 15px rgba(0, 255, 102, 0.25), inset 0 0 10px rgba(0, 255, 102, 0.1);
-        }
-        .matrix-badge:hover {
-            box-shadow: 0 0 25px rgba(0, 255, 102, 0.5), inset 0 0 15px rgba(0, 255, 102, 0.25);
-        }
-        .cert-badge {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            transition: all 0.2s ease-in-out;
-        }
-        .cert-badge:hover {
-            transform: translateY(-2px);
-        }
-        /* Custom ANY.RUN Status Box styling matching screenshot */
-        .anyrun-status-box {
-            background-color: #090d16;
-            border: 1px solid #1e293b;
-        }
-        .scanline-effect {
-            position: relative;
-            overflow: hidden;
-        }
-        .scanline-effect::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 102, 0.05) 51%);
-            background-size: 100% 4px;
-            pointer-events: none;
-        }
-        .highlight-glow-amber {
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forensic Analysis</title>
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,600;1,700;1,900&family=Noto+Sans+KR:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:#3a2d3a}
+body{
+  font-family:'Montserrat','Noto Sans KR',system-ui,sans-serif;color:#fff;min-height:100vh;
+  background:
+    radial-gradient(60% 40% at 15% 0%,#8d6d6b 0%,transparent 70%),
+    radial-gradient(60% 50% at 95% 35%,#735663 0%,transparent 70%),
+    radial-gradient(80% 60% at 25% 100%,#4d3c52 0%,transparent 70%),
+    #3b2d3b;
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+body::before{ /* grain */
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.10;mix-blend-mode:overlay;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:6px}
+a{color:inherit}
+
+/* ---------- layout ---------- */
+.stage{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:150px 20px 40px;display:flex;flex-direction:column;gap:150px}
+
+/* ---------- card ---------- */
+.sl-card{position:relative;border-radius:18px;min-height:540px;scroll-margin-top:150px;--r:18px}
+.js .sl-card{opacity:0;transform:translateY(28px)}
+.js .ready .sl-card{opacity:1;transform:none;transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+.js .ready .sl-card:nth-child(2){transition-delay:.18s}
+
+.theme-blue{--g1:#1c2a78;--g2:#2b3092;--g3:#43297f;--btn-ink:#1d2160;--glass:rgba(255,255,255,.08)}
+.theme-gold{--g1:#948311;--g2:#7d6d13;--g3:#5f5314;--btn-ink:#4d4210;--glass:rgba(0,0,0,.14)}
+
+.sl-bg{
+  position:absolute;inset:0;border-radius:var(--r);overflow:hidden;
+  background:
+    radial-gradient(60% 80% at 85% 0%,rgba(255,255,255,.16),transparent 60%),
+    radial-gradient(50% 60% at 10% 100%,rgba(0,0,0,.28),transparent 70%),
+    linear-gradient(135deg,var(--g1),var(--g2) 50%,var(--g3));
+  box-shadow:0 34px 60px -24px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04) inset;
+}
+.sl-bg::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;right:-140px;top:-180px;border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 0 0 46px rgba(255,255,255,.018),0 0 0 60px rgba(255,255,255,.012)}
+.sl-bg::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;left:-120px;bottom:-200px;border:1px solid rgba(255,255,255,.07)}
+.sl-bg canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- nav ---------- */
+.sl-nav{position:relative;z-index:4;height:76px;padding:0 30px;display:flex;align-items:center;gap:26px;font-size:13px;font-weight:600}
+.kebab{all:unset;cursor:pointer;width:26px;height:34px;display:grid;place-items:center;color:#fff;font-size:15px;border-radius:6px}
+.kebab:focus-visible{outline:2px solid #fff}
+.logo{font-family:'Noto Sans KR',sans-serif;font-weight:900;line-height:.95;font-size:13px;letter-spacing:-.02em;text-shadow:0 1px 0 rgba(0,0,0,.4);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.35);text-align:center}
+.sl-links{display:flex;gap:30px;margin-left:18px}
+.sl-links a,.signup{text-decoration:none;color:#fff;opacity:.95;transition:opacity .2s}
+.sl-links a:hover,.signup:hover{opacity:.7}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;padding:0 14px;height:30px;width:170px;border-radius:999px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.08)}
+.search i{font-size:10px;opacity:.75}
+.search input{all:unset;width:100%;font-size:10.5px;font-weight:500;color:#fff}
+.search input::placeholder{color:rgba(255,255,255,.6)}
+.search:focus-within{border-color:rgba(255,255,255,.6)}
+
+/* ---------- body ---------- */
+.sl-body{position:relative;z-index:4;display:grid;grid-template-columns:1fr 210px;gap:24px;padding:20px 36px 52px 56px}
+.pane{display:none}
+.pane.on{display:block;animation:paneIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes paneIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.art-on .pane{max-width:380px}
+
+.rank{display:flex;align-items:center;gap:6px;margin-bottom:8px;height:62px}
+.rank-s{font:italic 900 58px/1 'Montserrat',sans-serif;background:linear-gradient(160deg,#fff7b8 0%,#ffc61a 55%,#e07b00 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35));padding-right:4px}
+.rank-i{font-size:38px;color:#ffd44d;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35));margin-right:4px}
+.rank-t{font:italic 600 15px 'Montserrat',sans-serif;letter-spacing:.08em;transform:translateY(8px)}
+.aka{font-size:12.5px;font-weight:500;opacity:.92;margin-bottom:4px}
+.name{font-weight:800;font-size:clamp(30px,4.2vw,46px);line-height:1;text-transform:uppercase;letter-spacing:.005em;text-shadow:0 2px 14px rgba(0,0,0,.25)}
+.name.long{font-size:clamp(24px,3.1vw,35px);line-height:1.08}
+.ko{font:700 22px 'Noto Sans KR',sans-serif;margin:6px 0 30px}
+.desc{font-size:12.5px;line-height:1.6;font-weight:500;opacity:.92;margin-bottom:18px;text-shadow:0 1px 6px rgba(0,0,0,.2)}
+
+.pane-title{font-weight:800;font-size:clamp(22px,2.6vw,30px);line-height:1.1;margin:8px 0 6px}
+.pane-sub{font-size:12.5px;font-weight:500;line-height:1.55;opacity:.85;margin-bottom:20px;max-width:560px}
+
+/* ---------- right menu ---------- */
+.sl-menu{list-style:none;display:flex;flex-direction:column;align-items:flex-end;gap:15px;margin-top:34px;align-self:start;text-align:right}
+.sl-menu button{all:unset;display:block;cursor:pointer;font:700 11.5px 'Montserrat',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.5);padding:3px 0;transition:color .2s}
+.sl-menu button:hover{color:#fff}
+.sl-menu button:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.sl-menu li.on button{display:flex;align-items:center;gap:10px;font-size:clamp(22px,2.8vw,32px);font-weight:800;letter-spacing:0;color:#fff;margin-bottom:6px}
+.sl-menu li.on button::before{content:"";width:12px;height:12px;border-radius:50%;background:#fff;flex:none}
+
+/* ---------- hero art ---------- */
+.hero-art{position:absolute;z-index:2;left:46%;bottom:0;width:min(400px,40%);aspect-ratio:400/660;pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.hero-art svg{width:100%;height:100%;display:block;overflow:visible}
+.sl-card:not(.art-on) .hero-art{opacity:0;transform:translateY(24px)}
+
+/* ---------- shared bits ---------- */
+.glass{background:var(--glass);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:14px 16px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.rows{display:flex;flex-direction:column;gap:10px;max-width:620px}
+.row{display:flex;align-items:center;gap:14px}
+.row .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14);font-size:15px;flex:none}
+.row b{display:block;font-size:13.5px;font-weight:700}
+.row small{display:block;font-size:11.5px;font-weight:500;opacity:.78;line-height:1.5;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.chip{min-width:150px}
+.chip small{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.chip span{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:13.5px;font-weight:700}
+.bad{color:#ff8a9a}.warn{color:#ffd166}
+.pulse{animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,100,120,0)}50%{box-shadow:0 0 18px 0 rgba(255,100,120,.55)}}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:620px}
+.tile{padding:14px 14px 12px}
+.tile .num{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.tile small{display:block;margin-top:8px;font-size:10.5px;font-weight:600;opacity:.8;letter-spacing:.04em}
+.objective{font-size:11.5px;font-weight:600;opacity:.85;margin:0 0 10px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none;font:700 12px 'Montserrat',sans-serif;color:#fff;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.25);padding:9px 15px;border-radius:999px;transition:background .2s,color .2s,transform .15s}
+.btn:hover{background:rgba(0,0,0,.5)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:#fff;color:var(--btn-ink);border-color:#fff}
+.btn.primary:hover{background:#eef0ff}
+
+.link-box{max-width:660px}
+.link-box code{display:block;font:500 12px 'JetBrains Mono',monospace;word-break:break-all;margin:6px 0 14px;opacity:.95}
+.link-box .acts{display:flex;flex-wrap:wrap;gap:10px}
+
+.task{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.task .id{font:500 11px 'JetBrains Mono',monospace;opacity:.8;display:flex;align-items:center;gap:8px}
+.task .url{font:500 12px 'JetBrains Mono',monospace;word-break:break-all;margin-top:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:#5eead4;display:inline-block;flex:none}
+.dot.on{background:#4ade80;animation:blink 1.6s ease-in-out infinite}
+.dot.off{background:#9ca3af}
+@keyframes blink{50%{opacity:.35}}
+
+.table-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:var(--glass)}
+table{width:100%;border-collapse:collapse;min-width:620px;font-size:12px}
+th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75;padding:12px;border-bottom:1px solid rgba(255,255,255,.16)}
+td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:rgba(255,255,255,.07)}
+td code{font:500 11.5px 'JetBrains Mono',monospace;background:rgba(0,0,0,.35);padding:3px 7px;border-radius:6px;word-break:break-all;user-select:all}
+.fam{font-weight:700}
+.state{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;white-space:nowrap}
+
+.steps{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:700px}
+.step h4{font-size:13.5px;font-weight:700;margin:8px 0 6px}
+.step p{font-size:12px;line-height:1.55;opacity:.88;font-weight:500}
+.step .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:rgba(0,0,0,.3);font-weight:800;font-size:12px;border:1px solid rgba(255,255,255,.2)}
+.step em{font-style:normal;font-size:10.5px;font-weight:600;opacity:.65;float:right;margin-top:6px}
+.step code{font:500 11px 'JetBrains Mono',monospace;background:rgba(0,0,0,.35);padding:1px 5px;border-radius:5px}
+.vt{margin-top:14px;max-width:700px}
+.vt label{display:block;font-size:11.5px;font-weight:700;margin-bottom:10px}
+.vt .f{display:flex;gap:10px;flex-wrap:wrap}
+.vt input{flex:1;min-width:200px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:10px 16px;color:#fff;font:500 12px 'JetBrains Mono',monospace}
+.vt input::placeholder{color:rgba(255,255,255,.55)}
+.vt input:focus{outline:none;border-color:#fff}
+
+pre.notes{max-width:700px;max-height:420px;overflow:auto;font:400 11.5px/1.65 'JetBrains Mono',monospace;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:16px;white-space:pre-wrap;word-break:break-all}
+
+/* ---------- credit ---------- */
+.credit{position:relative;z-index:1;text-align:center;font-weight:600;font-size:clamp(14px,2vw,22px);padding:10px 20px 60px;text-shadow:0 2px 12px rgba(0,0,0,.3)}
+
+/* ---------- intro + toasts ---------- */
+#sys-intro{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 50%,#17214f 0%,#05060f 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;cursor:pointer;transition:opacity .9s ease,filter .9s ease;font-family:'JetBrains Mono',monospace;padding:1rem;text-align:center}
+#sys-intro.hide{opacity:0;filter:blur(10px);pointer-events:none}
+#sys-intro .l1{color:#9fb4ff;font-size:.95rem;min-height:1.4em;text-shadow:0 0 10px rgba(120,150,255,.8)}
+#sys-intro .l2{color:#94a3b8;font-size:.8rem;min-height:1.2em}
+#sys-intro .arise{margin-top:1.5rem;font-family:'Montserrat',sans-serif;font-size:clamp(2.8rem,12vw,6rem);font-weight:800;letter-spacing:.45em;padding-left:.45em;color:#dbe4ff;opacity:0;text-shadow:0 0 18px #6d83ff,0 0 50px #6d83ff,0 0 90px #7c3aed}
+#sys-intro .arise.show{animation:ariseIn 1.2s cubic-bezier(.2,.9,.2,1) forwards,ariseShake .5s .5s 2}
+#sys-intro .skip{position:absolute;bottom:1.5rem;font-size:.65rem;color:#64748b;letter-spacing:.25em;text-transform:uppercase}
+.cursor-blink::after{content:"_";animation:blink 1s steps(1) infinite}
+@keyframes ariseIn{0%{opacity:0;transform:scale(1.8);filter:blur(14px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:scale(1)}}
+@keyframes ariseShake{0%,100%{transform:translate(0)}25%{transform:translate(-4px,2px)}50%{transform:translate(4px,-2px)}75%{transform:translate(-2px,-3px)}}
+#toast-stack{position:fixed;top:1rem;right:1rem;z-index:90;width:18.5rem;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.sys-toast{background:rgba(18,16,36,.92);border:1px solid rgba(255,255,255,.2);border-left:4px solid #9fb4ff;border-radius:.6rem;padding:.6rem .8rem;font:500 .72rem 'JetBrains Mono',monospace;color:#eef1ff;animation:toastIn .45s cubic-bezier(.2,.9,.2,1)}
+.sys-toast b{color:#9fb4ff}
+.sys-toast.out{animation:toastOut .5s forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateX(40px)}}
+
+/* ---------- responsive ---------- */
+@media (max-width:880px){
+  .stage{padding-top:90px;gap:90px}
+  .sl-links{display:none;position:absolute;top:66px;left:20px;flex-direction:column;gap:12px;margin:0;padding:14px 20px;background:rgba(10,10,30,.85);border-radius:12px;border:1px solid rgba(255,255,255,.15)}
+  .sl-nav.open .sl-links{display:flex}
+  .signup{display:none}
+  .search{width:140px}
+  .sl-nav{padding:0 20px;gap:16px}
+  .sl-body{grid-template-columns:1fr;padding:6px 24px 40px}
+  .sl-menu{order:-1;flex-direction:row;flex-wrap:wrap;justify-content:flex-start;align-items:center;gap:6px 16px;margin:0 0 14px;text-align:left}
+  .sl-menu li.on button{font-size:22px;margin:0}
+  .art-on .pane{max-width:none}
+  .hero-art{left:auto;right:-12px;width:200px;opacity:.35}
+  .sl-card:not(.art-on) .hero-art{opacity:0}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .js .sl-card{opacity:1;transform:none}
+}
+</style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased selection:bg-matrix-400 selection:text-black">
+<body>
 
-    <!-- MAIN REPORT CONTENT -->
-    <div id="protected-report" class="h-full flex flex-col">
-        
-        <!-- Header Navbar -->
-        <header class="bg-slate-900 border-b border-slate-800">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-600/20">
-                        <i class="fa-solid fa-bug text-xl text-white"></i>
-                    </div>
-                    <div>
-                        <!-- Header Title -->
-                        <h1 class="font-bold text-base text-white leading-tight flex items-center gap-2">
-                            <span>Forensic Analysis</span>
-                        </h1>
-                        <!-- Matrix Animated Analyst Header -->
-                        <p class="text-xs text-slate-400 flex items-center gap-1.5">
-                            <span>Lead Analyst:</span>
-                            <span class="matrix-scramble font-mono text-matrix-400 font-bold tracking-wide matrix-glow cursor-pointer" title="Click to trigger Matrix decode animation">Pratik Ingale</span>
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span class="hidden sm:inline">Malware Detected</span>
-                    </span>
-                </div>
-            </div>
-        </header>
+<!-- Intro -->
+<div id="sys-intro">
+  <div class="l1 cursor-blink"></div>
+  <div class="l2"></div>
+  <div class="arise">ARISE</div>
+  <div class="skip">click to skip</div>
+</div>
+<div id="toast-stack" aria-live="polite"></div>
 
-        <!-- Main Content -->
-        <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+<main class="stage" id="top">
 
-            <!-- Analyst Profile & Certifications Bar -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center space-x-4">
-                    <div class="matrix-badge scanline-effect w-12 h-12 rounded-xl flex items-center justify-center text-matrix-400 text-xl font-mono font-bold flex-shrink-0 cursor-pointer" onclick="triggerAllScrambles()" title="Click to decode">
-                        <i class="fa-solid fa-terminal animate-pulse"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-semibold">Security Analyst</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-matrix-400 animate-ping"></span>
-                        </div>
-                        <h2 class="text-lg font-bold font-mono text-matrix-400 matrix-glow matrix-scramble cursor-pointer" onclick="triggerAllScrambles()">Pratik Ingale</h2>
-                    </div>
-                </div>
+<!-- =============== CARD 1 · ANALYST (blue) =============== -->
+<section class="sl-card theme-blue art-on" id="analyst" aria-label="Lead analyst profile">
+  <div class="sl-bg"><canvas class="fx" data-fx="sparks"></canvas></div>
 
-                <!-- Certification & Skill Badges -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- Analysis Scope Badge -->
-                    <div class="cert-badge border border-amber-500/40 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-amber-500/10">
-                        <i class="fa-solid fa-microscope text-amber-400 text-sm"></i>
-                        <span>Dynamic & Static Analysis</span>
-                    </div>
+  <!-- Character art slot: swap this <svg> for your own transparent PNG, e.g. <img src="analyst.png" alt=""> -->
+  <figure class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 400 660" preserveAspectRatio="xMidYMax meet">
+      <defs>
+        <linearGradient id="rimA" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7f95ff" stop-opacity=".0"/><stop offset=".85" stop-color="#9fb4ff" stop-opacity=".7"/><stop offset="1" stop-color="#9fb4ff" stop-opacity=".0"/></linearGradient>
+        <linearGradient id="bodyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0c18"/><stop offset="1" stop-color="#04050b"/></linearGradient>
+      </defs>
+      <path d="M10 660C10 520 60 440 150 410L250 410C340 440 390 520 390 660Z" fill="url(#bodyA)"/>
+      <path d="M150 410C70 440 20 520 14 660" stroke="url(#rimA)" stroke-width="3" fill="none" transform="translate(376 0) scale(-1 1) translate(0 0)" opacity=".6"/>
+      <path d="M168 330L232 330L240 420L160 420Z" fill="#0d0e1b"/>
+      <path d="M150 250C145 170 190 120 240 135C285 150 295 215 280 270C270 315 235 345 205 345C170 340 152 300 150 250Z" fill="#12132a"/>
+      <path d="M280 270C270 315 235 345 205 345" stroke="#9fb4ff" stroke-opacity=".6" stroke-width="2" fill="none"/>
+      <path d="M138 235C120 140 175 75 245 85C305 95 330 150 300 215L292 165L268 205L262 150L235 195L215 140L195 200L175 160L165 235Z" fill="#05060b"/>
+      <ellipse cx="160" cy="255" rx="9" ry="16" fill="#0d0e1b"/>
+    </svg>
+  </figure>
 
-                    <!-- TryHackMe Top 2% -->
-                    <div class="cert-badge border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/10">
-                        <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
-                        <span>TryHackMe <span class="text-matrix-400 font-extrabold matrix-glow">Top 2%</span></span>
-                    </div>
+  <nav class="sl-nav" aria-label="Analyst card">
+    <button class="kebab" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+    <div class="logo" aria-hidden="true">포렌식<br>분석</div>
+    <div class="sl-links">
+      <a href="#top" data-goto="analyst:about">Home</a>
+      <a href="#case" data-goto="case:tasks">Tasks</a>
+      <a href="#case" data-goto="case:workflow">Help</a>
+    </div>
+    <span class="spacer"></span>
+    <a class="signup" href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" data-toast="Accessing forensic vault...">Open Vault</a>
+    <label class="search"><i class="fa-solid fa-magnifying-glass"></i><input class="nav-search" type="text" placeholder="Search hash or URL…" aria-label="Search VirusTotal"></label>
+  </nav>
 
-                    <!-- CEH Certified -->
-                    <div class="cert-badge border border-sky-500/40 text-sky-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-sky-500/10">
-                        <i class="fa-solid fa-user-shield text-sky-400 text-sm"></i>
-                        <span>CEH Certified</span>
-                    </div>
+  <div class="sl-body">
+    <div class="panes">
+      <div class="pane on" data-pane="about" data-art role="tabpanel">
+        <div class="rank"><span class="rank-s">S</span><span class="rank-t">RANK</span></div>
+        <p class="aka">Lead Analyst A.K.A</p>
+        <h1 class="name"><span class="scramble">Pratik Ingale</span></h1>
+        <p class="ko">(포렌식 분석가)</p>
+        <p class="desc">Pratik Ingale is the lead analyst of this forensic report. He is a TryHackMe Top 2% player, CEH and CHFI certified, and runs the dynamic and static malware analysis walked through on this page.</p>
+        <p class="desc">The case file below tracks three ANY.RUN sandbox runs and ten malicious URLs from URLhaus. Open any task to start, or paste a hash into the search bar to check it on VirusTotal.</p>
+      </div>
 
-                    <!-- CHFI Certified -->
-                    <div class="cert-badge border border-violet-500/40 text-violet-300 px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-violet-500/10">
-                        <i class="fa-solid fa-magnifying-glass-chart text-violet-400 text-sm"></i>
-                        <span>CHFI Certified</span>
-                    </div>
-                </div>
-            </div>
+      <div class="pane" data-pane="affiliation" role="tabpanel">
+        <h2 class="pane-title">Affiliation</h2>
+        <p class="pane-sub">Credentials and ranking behind this report.</p>
+        <div class="rows">
+          <div class="glass row"><span class="ic" style="color:#ffd166"><i class="fa-solid fa-microscope"></i></span><div><b>Dynamic &amp; Static Analysis</b><small>Analysis scope</small></div></div>
+          <div class="glass row"><span class="ic" style="color:#ffb454"><i class="fa-solid fa-fire"></i></span><div><b>TryHackMe Top 2%</b><small>Platform ranking</small></div></div>
+          <div class="glass row"><span class="ic" style="color:#7dd3fc"><i class="fa-solid fa-user-shield"></i></span><div><b>CEH Certified</b><small>Certified Ethical Hacker</small></div></div>
+          <div class="glass row"><span class="ic" style="color:#c4b5fd"><i class="fa-solid fa-magnifying-glass-chart"></i></span><div><b>CHFI Certified</b><small>Computer Hacking Forensic Investigator</small></div></div>
+        </div>
+      </div>
 
-            <!-- Status Overview Card -->
-            <div class="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-900/40 rounded-2xl p-6 shadow-xl backdrop-blur-sm space-y-5">
-                <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                    
-                    <!-- Title & Direct Status Badges Below Name -->
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fa-solid fa-shield-virus text-2xl"></i>
-                        </div>
-                        <div class="space-y-3">
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <h2 class="text-xl font-bold text-white font-mono">phishing and malware analysis</h2>
-                                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-rose-600 text-white uppercase tracking-wider">Infected</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-1">Target File: <span class="text-slate-200 font-mono">phishing and malware analysis</span></p>
-                            </div>
+      <div class="pane" data-pane="status" role="tabpanel">
+        <h2 class="pane-title">Status</h2>
+        <p class="pane-sub">State of the sample set under analysis.</p>
+        <div class="chips">
+          <div class="glass chip"><small>Status</small><span class="bad"><i class="fa-solid fa-triangle-exclamation"></i>Infected</span></div>
+          <div class="glass chip"><small>Access note</small><span class="warn"><i class="fa-solid fa-key"></i>Password Protected</span></div>
+          <div class="glass chip pulse"><small>Detection</small><span class="bad"><i class="fa-solid fa-bug"></i>Malware Detected</span></div>
+        </div>
+        <p class="objective">Quest info · Objective: analyze every sandbox run</p>
+        <div class="tiles">
+          <div class="glass tile"><div class="num" data-stat="tasks">0</div><small>Sandbox tasks</small></div>
+          <div class="glass tile"><div class="num" data-stat="urls">0</div><small>Tracked URLs</small></div>
+          <div class="glass tile"><div class="num" data-stat="online">0</div><small>Online</small></div>
+          <div class="glass tile"><div class="num" data-stat="offline">0</div><small>Offline</small></div>
+        </div>
+      </div>
 
-                            <!-- Status Badge Directly Below Name -->
-                            <div class="flex flex-wrap items-center gap-3 pt-1">
-                                <!-- STATUS: Infected -->
-                                <div class="anyrun-status-box px-4 py-2 rounded-xl flex flex-col justify-center border border-slate-800 shadow-md">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">STATUS</span>
-                                    <div class="flex items-center space-x-1.5 mt-1.5">
-                                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xs"></i>
-                                        <span class="text-rose-400 font-semibold text-sm">Infected</span>
-                                    </div>
-                                </div>
+      <div class="pane" data-pane="skills" role="tabpanel">
+        <h2 class="pane-title">Skills</h2>
+        <p class="pane-sub">The workflow this report demonstrates.</p>
+        <div class="rows">
+          <div class="glass row"><span class="ic"><i class="fa-solid fa-play"></i></span><div><b>Dynamic analysis</b><small>Run samples in the ANY.RUN sandbox and inspect process trees, network calls and dropped files.</small></div></div>
+          <div class="glass row"><span class="ic"><i class="fa-solid fa-hashtag"></i></span><div><b>Static analysis</b><small>Copy the MD5 or SHA-256 hash from the sandbox indicators panel.</small></div></div>
+          <div class="glass row"><span class="ic"><i class="fa-solid fa-radiation"></i></span><div><b>Threat intelligence</b><small>Cross-check hashes and URLs on VirusTotal and track live payload URLs from URLhaus (abuse.ch).</small></div></div>
+          <div class="glass row"><span class="ic"><i class="fa-solid fa-folder-open"></i></span><div><b>Evidence handling</b><small>PCAP dumps, extracted credentials and stream logs are kept in a MEGA folder.</small></div></div>
+        </div>
+      </div>
+    </div>
 
-                                <!-- ACCESS NOTE: Password Protected -->
-                                <div class="anyrun-status-box px-4 py-2 rounded-xl flex flex-col justify-center border border-slate-800 shadow-md">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">ACCESS NOTE</span>
-                                    <div class="flex items-center space-x-1.5 mt-1.5">
-                                        <i class="fa-solid fa-key text-amber-400 text-xs"></i>
-                                        <span class="text-amber-400 font-semibold text-sm">Password Protected</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <ul class="sl-menu" role="tablist" aria-label="Analyst sections">
+      <li class="on" data-pane="about"><button role="tab" aria-selected="true">About</button></li>
+      <li data-pane="affiliation"><button role="tab" aria-selected="false">Affiliation</button></li>
+      <li data-pane="status"><button role="tab" aria-selected="false">Status</button></li>
+      <li data-pane="skills"><button role="tab" aria-selected="false">Skills</button></li>
+    </ul>
+  </div>
+</section>
 
-                    <!-- Verified Analyst Badge -->
-                    <div class="flex flex-wrap gap-2 text-xs self-start">
-                        <div class="matrix-badge scanline-effect rounded-xl px-4 py-2.5 cursor-pointer transition shadow-lg" onclick="triggerAllScrambles()" title="Click to re-run Matrix animation">
-                            <span class="text-matrix-400 block text-[9px] uppercase font-mono font-bold tracking-widest opacity-80">VERIFIED ANALYST</span>
-                            <span class="matrix-scramble font-mono font-extrabold text-matrix-400 matrix-glow text-xs flex items-center gap-1.5 mt-0.5">
-                                <i class="fa-solid fa-terminal text-[10px] text-matrix-400 animate-pulse"></i>
-                                <span class="hacker-text">Pratik Ingale</span>
-                            </span>
-                        </div>
-                    </div>
+<!-- =============== CARD 2 · CASE FILE (gold) =============== -->
+<section class="sl-card theme-gold art-on" id="case" aria-label="Case file">
+  <div class="sl-bg"><canvas class="fx" data-fx="petals"></canvas></div>
 
-                </div>
-            </div>
+  <figure class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 400 660" preserveAspectRatio="xMidYMax meet">
+      <defs>
+        <linearGradient id="shirtB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0f4ff"/><stop offset="1" stop-color="#9fb2e8"/></linearGradient>
+      </defs>
+      <path d="M30 660C30 520 80 440 160 420L240 420C320 440 370 520 370 660Z" fill="url(#shirtB)"/>
+      <path d="M240 420C320 440 370 520 370 660L300 660C310 540 285 470 240 420Z" fill="#2a2a4a" opacity=".45"/>
+      <path d="M175 350L225 350L232 425L168 425Z" fill="#f1d3c0"/>
+      <path d="M150 250C150 190 185 160 205 160C235 160 258 195 256 255C254 315 225 355 200 355C170 350 150 305 150 250Z" fill="#f6dfd0"/>
+      <path d="M138 270C125 190 150 130 205 125C265 125 285 190 270 275L258 215C240 200 200 195 160 215Z" fill="#e9d594"/>
+      <path d="M135 160C140 95 185 65 225 70C270 78 290 120 285 160Z" fill="#f2b6c0"/>
+      <path d="M118 165C180 148 260 150 302 172C262 188 170 188 118 165Z" fill="#e79aa8"/>
+    </svg>
+  </figure>
 
-            <!-- FORENSIC RESOURCES SECTION -->
-            <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/30 border border-sky-500/30 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center text-2xl flex-shrink-0">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-base text-white flex items-center gap-2">
-                                <span>Forensic resources</span>
-                                <span class="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded font-mono font-extrabold uppercase">MEGA Cloud</span>
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Download PCAP dumps, extracted credentials, and stream logs</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 self-start sm:self-auto">
-                        <i class="fa-solid fa-folder-open mr-1"></i> Live Repository
-                    </span>
-                </div>
+  <nav class="sl-nav" aria-label="Case file card">
+    <button class="kebab" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+    <div class="logo" aria-hidden="true">포렌식<br>분석</div>
+    <div class="sl-links">
+      <a href="#top" data-goto="analyst:about">Home</a>
+      <a href="#case" data-goto="case:tasks">Tasks</a>
+      <a href="#case" data-goto="case:workflow">Help</a>
+    </div>
+    <span class="spacer"></span>
+    <a class="signup" href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" data-toast="Accessing forensic vault...">Open Vault</a>
+    <label class="search"><i class="fa-solid fa-magnifying-glass"></i><input class="nav-search" type="text" placeholder="Search hash or URL…" aria-label="Search VirusTotal"></label>
+  </nav>
 
-                <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="space-y-1 font-mono text-xs overflow-hidden w-full sm:w-auto">
-                        <span class="text-slate-400 font-bold block">MEGA Directory Link:</span>
-                        <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 underline truncate block font-mono text-xs">
-                            https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-2 w-full sm:w-auto flex-shrink-0">
-                        <button onclick="copyLink('https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2.5 rounded-lg text-xs font-mono font-medium border border-slate-700 transition flex-1 sm:flex-none justify-center">
-                            <i class="fa-regular fa-copy mr-1.5"></i> Copy Link
-                        </button>
-                        <a href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" class="bg-sky-600 hover:bg-sky-500 text-white font-mono font-bold text-xs px-4 py-2.5 rounded-lg transition flex-1 sm:flex-none justify-center text-center shadow-lg shadow-sky-600/20 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-external-link"></i>
-                            <span>Open MEGA Folder</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+  <div class="sl-body">
+    <div class="panes">
 
-            <!-- Section Title -->
-            <div class="flex items-center justify-between pt-2">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Sandbox Task URLs (Dynamic Analysis Runs)</h3>
-                <span class="text-xs text-slate-500">2 Tasks Loaded</span>
-            </div>
+      <div class="pane on" data-pane="about" data-art role="tabpanel">
+        <div class="rank"><i class="fa-solid fa-biohazard rank-i"></i><span class="rank-t" style="transform:none">INFECTED</span></div>
+        <p class="aka">Target File A.K.A</p>
+        <h2 class="name long">Phishing &amp; Malware Analysis</h2>
+        <p class="ko">(피싱 및 악성코드 분석)</p>
+        <p class="desc">A password-protected sample set, flagged Infected. Each ANY.RUN task shows the live process tree, network calls and dropped files such as Payment-updated.pdf.</p>
+        <p class="desc">Forensic resources (PCAP dumps, extracted credentials and stream logs) are stored in a MEGA folder. Pick a section on the right to continue.</p>
+      </div>
 
-            <!-- Task Link Cards -->
-            <div class="space-y-4">
-                
-                <!-- Task 1 -->
-                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-5 transition group">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 overflow-hidden">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <span class="text-xs font-semibold text-slate-400 uppercase font-mono">Task ID: 8bfd4c58-ec0d-4371-bfeb-52a334b69f59</span>
-                            </div>
-                            <a href="https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59" target="_blank" rel="noopener noreferrer" class="font-mono text-sm text-sky-400 group-hover:text-sky-300 hover:underline flex items-center space-x-2 truncate">
-                                <span class="truncate">https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs flex-shrink-0 opacity-70"></i>
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button onclick="copyLink('https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Link</span>
-                            </button>
-                            <a href="https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59" target="_blank" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-lg shadow-rose-600/20">
-                                <i class="fa-solid fa-external-link"></i>
-                                <span>Open Task</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+      <div class="pane" data-pane="resources" role="tabpanel">
+        <h2 class="pane-title">Resources</h2>
+        <p class="pane-sub">Download PCAP dumps, extracted credentials and stream logs from the MEGA cloud folder.</p>
+        <div class="glass link-box">
+          <small style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75">MEGA directory link</small>
+          <code>https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA</code>
+          <div class="acts">
+            <button class="btn" data-copy="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA"><i class="fa-regular fa-copy"></i><span>Copy link</span></button>
+            <a class="btn primary" href="https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA" target="_blank" rel="noopener noreferrer" data-toast="Accessing forensic vault..."><i class="fa-solid fa-external-link"></i><span>Open MEGA folder</span></a>
+          </div>
+        </div>
+      </div>
 
-                <!-- Task 2 -->
-                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-5 transition group">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 overflow-hidden">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <span class="text-xs font-semibold text-slate-400 uppercase font-mono">Task ID: 82d8adc9-38a0-4f0e-a160-48a5e09a6e83</span>
-                            </div>
-                            <a href="https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83" target="_blank" rel="noopener noreferrer" class="font-mono text-sm text-sky-400 group-hover:text-sky-300 hover:underline flex items-center space-x-2 truncate">
-                                <span class="truncate">https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs flex-shrink-0 opacity-70"></i>
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button onclick="copyLink('https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Link</span>
-                            </button>
-                            <a href="https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83" target="_blank" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-lg shadow-rose-600/20">
-                                <i class="fa-solid fa-external-link"></i>
-                                <span>Open Task</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+      <div class="pane" data-pane="tasks" role="tabpanel">
+        <h2 class="pane-title">Tasks</h2>
+        <p class="pane-sub">Sandbox task URLs (dynamic analysis runs). Open a task to inspect it live.</p>
+        <div class="rows" id="task-list"></div>
+      </div>
 
-            </div>
+      <div class="pane" data-pane="feed" role="tabpanel">
+        <h2 class="pane-title">Threat feed</h2>
+        <p class="pane-sub">Ten malware payload URLs tracked by URLhaus (abuse.ch), suited for VirusTotal and ANY.RUN practice. Shown as text only.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Malicious URL</th><th>Malware family</th><th>Status</th></tr></thead>
+            <tbody id="feed-body"></tbody>
+          </table>
+        </div>
+      </div>
 
-            <!-- URLhaus TRACKED MALICIOUS URLs TABLE SECTION -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-globe text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                <span>Tracked Malicious URLs</span>
-                                <span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-mono px-2 py-0.5 rounded font-extrabold">URLhaus (abuse.ch)</span>
-                            </h3>
-                            <p class="text-xs text-slate-400">10 Real active malware payload URLs suited for VirusTotal & ANY.RUN practical testing</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 self-start sm:self-auto">
-                        <i class="fa-solid fa-radiation mr-1"></i> Live Threat Feed
-                    </span>
-                </div>
+      <div class="pane" data-pane="workflow" role="tabpanel">
+        <h2 class="pane-title">Workflow</h2>
+        <p class="pane-sub">Step-by-step dynamic and static analysis tutorial, guided by <span class="scramble">Pratik Ingale</span>.</p>
+        <div class="steps">
+          <div class="glass step"><span class="n">1</span><em>Initial action</em><h4>Click Open Task</h4><p>For dynamic and static analysis, open any task from the Tasks section to launch the interactive sandbox session.</p></div>
+          <div class="glass step"><span class="n">2</span><em>Sandbox inspection</em><h4>Dynamic execution &amp; view</h4><p>Inspect live behavior: process tree, network calls and file payloads like <code>Payment-updated.pdf</code>.</p></div>
+          <div class="glass step"><span class="n">3</span><em>Hash extraction</em><h4>Static file hash analysis</h4><p>Find the sample details in the indicators panel and copy the MD5 or SHA-256 checksum.</p></div>
+          <div class="glass step"><span class="n">4</span><em>Threat intel check</em><h4>Search on VirusTotal</h4><p>Open <a href="https://www.virustotal.com/gui/home/search" target="_blank" rel="noopener noreferrer"><u>VirusTotal</u></a>, choose the Search tab and paste the hash or URL.</p></div>
+        </div>
+        <div class="glass vt">
+          <label for="vt-hash-input">VirusTotal quick search</label>
+          <div class="f">
+            <input type="text" id="vt-hash-input" placeholder="Paste MD5 / SHA256 / URL here...">
+            <button class="btn primary" id="vt-go"><i class="fa-solid fa-search"></i><span>Search VT</span></button>
+          </div>
+        </div>
+      </div>
 
-                <!-- Responsive Table -->
-                <div class="overflow-x-auto rounded-xl border border-slate-800">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] font-mono text-slate-400 uppercase">
-                                <th class="p-3 pl-4">#</th>
-                                <th class="p-3">Malicious URL</th>
-                                <th class="p-3">Malware Family</th>
-                                <th class="p-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-xs font-mono">
-                            
-                            <!-- 1 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">1</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://78.153.140.16/ph.sh</code>
-                                </td>
-                                <td class="p-3 font-semibold text-amber-400">Kinsing</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online (spreading 1mo+)
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 2 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">2</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://45.225.135.61/fhKfephsUsIUn0nQCUkuUU63.bin</code>
-                                </td>
-                                <td class="p-3 font-semibold text-violet-400">GuLoader / RemcosRAT</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 3 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">3</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://176.65.139.26/AV6</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 4 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">4</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://176.65.139.26/X</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 5 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">5</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://45.202.246.143/bins/payload.xml</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 6 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">6</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://90.224.208.161:48263/i</code>
-                                </td>
-                                <td class="p-3 font-semibold text-amber-300">(ELF botnet)</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online (spreading 1mo+)
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 7 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">7</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://156.226.174.195/arm6</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Mirai</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 8 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">8</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://78.142.229.7/2016Nwjsh4</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 9 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">9</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">http://84.200.87.36/nexuscorp.x86</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-400">Gafgyt</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        Online
-                                    </span>
-                                </td>
-                            </tr>
-
-                            <!-- 10 -->
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="p-3 pl-4 font-bold text-slate-500">10</td>
-                                <td class="p-3">
-                                    <code class="text-rose-300 bg-slate-950 px-2 py-1 rounded border border-rose-950 select-all font-mono break-all">https://csat.teleshoppe.com.sg/e6lh48l.rar</code>
-                                </td>
-                                <td class="p-3 font-semibold text-rose-500">Dridex</td>
-                                <td class="p-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                                        Offline (scored on VT)
-                                    </span>
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- DYNAMIC AND STATIC ANALYSIS TUTORIAL SECTION -->
-            <div id="static-analysis-section" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-microscope text-lg"></i>
-                        </div>
-                        <div>
-                            <!-- Highlighted Dynamic and Static Analysis Header -->
-                            <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                <span>Step-by-Step</span>
-                                <span class="bg-gradient-to-r from-amber-400 via-emerald-400 to-rose-400 bg-clip-text text-transparent font-extrabold uppercase font-mono tracking-wider">Dynamic & Static Analysis</span>
-                                <span>Tutorial</span>
-                            </h3>
-                            <p class="text-xs text-slate-400">Guided procedure by <span class="matrix-scramble font-mono text-matrix-400 font-bold cursor-pointer" onclick="triggerAllScrambles()">Pratik Ingale</span></p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 self-start sm:self-auto">
-                        <i class="fa-solid fa-graduation-cap mr-1"></i> Malware Workflow
-                    </span>
-                </div>
-
-                <!-- Steps Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <!-- Step 1 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">1</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Initial Action</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
-                            <span>Click on</span>
-                            <span class="px-2 py-0.5 rounded text-xs bg-rose-600 text-white font-semibold inline-flex items-center gap-1 shadow-sm">
-                                <i class="fa-solid fa-external-link text-[10px]"></i> Open Task
-                            </span>
-                        </h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            For <strong class="text-amber-400 font-mono">Dynamic and Static Analysis</strong>, click the red <strong>Open Task</strong> button on any task card above to launch the interactive sandbox session.
-                        </p>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">2</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Sandbox Inspection</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white">Dynamic Execution & View</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            After opening, inspect live dynamic behavior (process tree execution, network calls, file payloads like <code class="text-rose-300 bg-slate-900 px-1 py-0.5 rounded font-mono">Payment-updated.pdf</code>).
-                        </p>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">3</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Hash Extraction</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white">Static File Hash Analysis</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Locate target sample details inside the indicators panel. Copy the <strong class="text-emerald-400 font-mono">MD5</strong> or <strong class="text-emerald-400 font-mono">SHA-256</strong> static checksum of the infected sample.
-                        </p>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 space-y-3 transition group">
-                        <div class="flex items-center justify-between">
-                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/30">4</span>
-                            <span class="text-[10px] font-mono text-slate-500 uppercase">Threat Intel Check</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
-                            <span>Search on</span>
-                            <span class="text-sky-400 font-bold font-mono">VirusTotal</span>
-                        </h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Go to <a href="https://www.virustotal.com/gui/home/search" target="_blank" class="text-sky-400 underline hover:text-sky-300 font-semibold">VirusTotal</a>, select the <strong>SEARCH</strong> tab, and paste the hash or URL to finalize threat intelligence cross-checking.
-                        </p>
-                    </div>
-
-                </div>
-
-                <!-- VirusTotal Quick Search Helper Card -->
-                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-sky-500/30 rounded-xl p-4 sm:p-5 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-sky-400 font-mono text-xs font-bold">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <span>VIRUSTOTAL QUICK SEARCH TOOL</span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-mono">Step 4 Helper</span>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="vt-hash-input" placeholder="Paste MD5 / SHA256 / URL here..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500">
-                        <button onclick="searchVirusTotal()" class="bg-sky-600 hover:bg-sky-500 text-white font-mono text-xs font-bold px-4 py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 shadow-lg shadow-sky-600/20">
-                            <i class="fa-solid fa-search"></i>
-                            <span>Search VT</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Raw Text Box Summary -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
-                <h4 class="text-xs font-semibold text-slate-400 uppercase">Extracted Raw Text & Report Notes</h4>
-                <pre class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800/80 overflow-x-auto selection:bg-matrix-400 selection:text-black">Dynamic and Static Analysis
-Lead Analyst: Pratik Ingale | TryHackMe Top 2% | CEH & CHFI Certified
+      <div class="pane" data-pane="notes" role="tabpanel">
+        <h2 class="pane-title">Notes</h2>
+        <p class="pane-sub">Extracted raw text and report notes.</p>
+<pre class="notes">Dynamic and Static Analysis
+Lead Analyst: Pratik Ingale | TryHackMe Top 2% | CEH &amp; CHFI Certified
 
 --- FORENSIC RESOURCES ---
 MEGA Directory Link: https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
@@ -622,7 +430,7 @@ MEGA Directory Link: https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
 9. http://84.200.87.36/nexuscorp.x86 (Gafgyt - Online)
 10. https://csat.teleshoppe.com.sg/e6lh48l.rar (Dridex - Offline)
 
---- DYNAMIC & STATIC ANALYSIS WORKFLOW ---
+--- DYNAMIC &amp; STATIC ANALYSIS WORKFLOW ---
 1. For dynamic and static analysis click on Open Task link
 2. View interactive sandbox (e.g., Payment-updated.pdf / process details)
 3. Copy MD5 / SHA256 hash or URL from sandbox indicators
@@ -630,145 +438,260 @@ MEGA Directory Link: https://mega.nz/folder/Vn5V1KKb#Ii7WeHcSiuUkn56v5qf_mA
 
 https://app.any.run/tasks/8bfd4c58-ec0d-4371-bfeb-52a334b69f59
 https://app.any.run/tasks/82d8adc9-38a0-4f0e-a160-48a5e09a6e83
+https://app.any.run/tasks/d83adb34-ae4f-4451-8ac3-1a7eb5dcef0f
 
 file - phishing and malware analysis
 STATUS: Infected -- Password Protected</pre>
-            </div>
-
-        </main>
-
-        <!-- Footer -->
-        <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-500">
-            <p>Dynamic and Static Analysis Task Hub — Prepared by <span class="matrix-scramble text-matrix-400 font-mono font-bold cursor-pointer">Pratik Ingale</span> (CEH | CHFI | THM Top 2%)</p>
-        </footer>
-
+      </div>
     </div>
 
-    <!-- Hacker Matrix Text Animation Logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initScramblers();
+    <ul class="sl-menu" role="tablist" aria-label="Case file sections">
+      <li class="on" data-pane="about"><button role="tab" aria-selected="true">About</button></li>
+      <li data-pane="resources"><button role="tab" aria-selected="false">Resources</button></li>
+      <li data-pane="tasks"><button role="tab" aria-selected="false">Tasks</button></li>
+      <li data-pane="feed"><button role="tab" aria-selected="false">Threat feed</button></li>
+      <li data-pane="workflow"><button role="tab" aria-selected="false">Workflow</button></li>
+      <li data-pane="notes"><button role="tab" aria-selected="false">Notes</button></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<p class="credit">Dynamic and Static Analysis Task Hub — Prepared by <span class="scramble">Pratik Ingale</span> (CEH | CHFI | THM Top 2%)</p>
+
+<script>
+(function () {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+  /* ---------- data ---------- */
+  const TASKS = [
+    '8bfd4c58-ec0d-4371-bfeb-52a334b69f59',
+    '82d8adc9-38a0-4f0e-a160-48a5e09a6e83',
+    'd83adb34-ae4f-4451-8ac3-1a7eb5dcef0f'
+  ];
+  const URLS = [
+    ['http://78.153.140.16/ph.sh', 'Kinsing', '#ffd166', 'Online (spreading 1mo+)'],
+    ['http://45.225.135.61/fhKfephsUsIUn0nQCUkuUU63.bin', 'GuLoader / RemcosRAT', '#c4b5fd', 'Online'],
+    ['http://176.65.139.26/AV6', 'Mirai', '#ff9aa8', 'Online'],
+    ['http://176.65.139.26/X', 'Gafgyt', '#ff9aa8', 'Online'],
+    ['http://45.202.246.143/bins/payload.xml', 'Mirai', '#ff9aa8', 'Online'],
+    ['http://90.224.208.161:48263/i', '(ELF botnet)', '#ffe29a', 'Online (spreading 1mo+)'],
+    ['http://156.226.174.195/arm6', 'Mirai', '#ff9aa8', 'Online'],
+    ['http://78.142.229.7/2016Nwjsh4', 'Gafgyt', '#ff9aa8', 'Online'],
+    ['http://84.200.87.36/nexuscorp.x86', 'Gafgyt', '#ff9aa8', 'Online'],
+    ['https://csat.teleshoppe.com.sg/e6lh48l.rar', 'Dridex', '#ff7a8c', 'Offline (scored on VT)']
+  ];
+  const stats = {
+    tasks: TASKS.length,
+    urls: URLS.length,
+    online: URLS.filter(u => /^Online/.test(u[3])).length,
+    offline: URLS.filter(u => /^Offline/.test(u[3])).length
+  };
+
+  /* ---------- render tasks + feed ---------- */
+  $('#task-list').innerHTML = TASKS.map(id => {
+    const url = 'https://app.any.run/tasks/' + id;
+    return `<div class="glass task">
+      <div style="min-width:0">
+        <div class="id"><span class="dot"></span>Task ID: ${id}</div>
+        <div class="url">${url}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" data-copy="${url}"><i class="fa-regular fa-copy"></i><span>Copy link</span></button>
+        <a class="btn primary" href="${url}" target="_blank" rel="noopener noreferrer" data-toast="Gate opening: launching sandbox task..."><i class="fa-solid fa-external-link"></i><span>Open task</span></a>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('#feed-body').innerHTML = URLS.map((u, i) => {
+    const on = /^Online/.test(u[3]);
+    return `<tr>
+      <td style="opacity:.6;font-weight:700">${i + 1}</td>
+      <td><code>${u[0]}</code></td>
+      <td class="fam" style="color:${u[2]}">${u[1]}</td>
+      <td><span class="state"><span class="dot ${on ? 'on' : 'off'}"></span>${u[3]}</span></td>
+    </tr>`;
+  }).join('');
+
+  /* ---------- toasts + copy ---------- */
+  function toast(msg) {
+    const s = $('#toast-stack'), d = document.createElement('div');
+    d.className = 'sys-toast';
+    d.innerHTML = '<b>[SYSTEM]</b> <span></span>';
+    $('span', d).textContent = msg;
+    s.appendChild(d);
+    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 500); }, 3800);
+  }
+  function copyLink(text, btn) {
+    const done = () => {
+      const html = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Copied</span>';
+      setTimeout(() => btn.innerHTML = html, 2000);
+      toast('Link copied to inventory.');
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+    function fallback() {
+      const t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      t.remove(); done();
+    }
+  }
+  document.addEventListener('click', e => {
+    const c = e.target.closest('[data-copy]');
+    if (c) copyLink(c.dataset.copy, c);
+    const t = e.target.closest('[data-toast]');
+    if (t) toast(t.dataset.toast);
+  });
+
+  /* ---------- VirusTotal search ---------- */
+  function searchVT(input) {
+    const q = input.value.trim();
+    if (!q) { toast('Enter an MD5, SHA256 hash or URL first.'); input.focus(); return; }
+    window.open('https://www.virustotal.com/gui/search/' + encodeURIComponent(q), '_blank', 'noopener');
+  }
+  $$('.nav-search').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') searchVT(i); }));
+  $('#vt-go').addEventListener('click', () => searchVT($('#vt-hash-input')));
+  $('#vt-hash-input').addEventListener('keydown', e => { if (e.key === 'Enter') searchVT(e.target); });
+
+  /* ---------- tabs ---------- */
+  let counted = false;
+  function countUp() {
+    if (counted) return; counted = true;
+    $$('[data-stat]').forEach(el => {
+      const target = stats[el.dataset.stat] || 0;
+      if (reduce || !target) { el.textContent = target; return; }
+      const t0 = performance.now(), dur = 1100;
+      (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }
+  function openTab(cardId, key) {
+    const card = document.getElementById(cardId);
+    $$('.sl-menu li', card).forEach(li => {
+      const on = li.dataset.pane === key;
+      li.classList.toggle('on', on);
+      $('button', li).setAttribute('aria-selected', on);
+    });
+    $$('.pane', card).forEach(p => p.classList.toggle('on', p.dataset.pane === key));
+    card.classList.toggle('art-on', $('.pane.on', card).hasAttribute('data-art'));
+    if (key === 'status') countUp();
+  }
+  $$('.sl-card').forEach(card => {
+    $$('.sl-menu li', card).forEach(li => $('button', li).addEventListener('click', () => openTab(card.id, li.dataset.pane)));
+    const k = $('.kebab', card), nav = $('.sl-nav', card);
+    k.addEventListener('click', () => { const o = nav.classList.toggle('open'); k.setAttribute('aria-expanded', o); });
+  });
+  $$('[data-goto]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const [id, key] = a.dataset.goto.split(':');
+    openTab(id, key);
+    $('.sl-nav', document.getElementById(id)).classList.remove('open');
+    document.getElementById(id).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }));
+
+  /* ---------- name scramble ---------- */
+  const NAME = 'Pratik Ingale', CH = '01ABCDEFGHJKLMNOPQRSTUVWXYZ#$@%&*<>/';
+  function scramble(el) {
+    if (reduce) { el.textContent = NAME; return; }
+    if (el._raf) cancelAnimationFrame(el._raf);
+    const q = [...NAME].map((to, i) => ({ to, s: (Math.random() * 12) | 0, e: 14 + ((Math.random() * 14) | 0), c: '' }));
+    let f = 0;
+    (function step() {
+      let out = '', done = 0;
+      q.forEach(o => {
+        if (f >= o.e) { out += o.to; done++; }
+        else if (f >= o.s) { if (!o.c || Math.random() < .3) o.c = CH[(Math.random() * CH.length) | 0]; out += o.to === ' ' ? ' ' : `<span style="opacity:.7">${o.c}</span>`; }
+        else out += o.to === ' ' ? ' ' : '&nbsp;';
+      });
+      el.innerHTML = out; f++;
+      if (done < q.length) el._raf = requestAnimationFrame(step);
+    })();
+  }
+  const scrams = $$('.scramble');
+  scrams.forEach(el => { el.style.cursor = 'pointer'; el.addEventListener('mouseenter', () => scramble(el)); el.addEventListener('click', () => scramble(el)); });
+
+  /* ---------- card particles: sparks (blue) + petals (gold) ---------- */
+  function startFx(cv) {
+    const ctx = cv.getContext('2d'), kind = cv.dataset.fx, card = cv.closest('.sl-card');
+    let W = 0, H = 0, vis = true;
+    const rs = () => { W = cv.width = cv.clientWidth; H = cv.height = cv.clientHeight; };
+    new ResizeObserver(rs).observe(cv); rs();
+    new IntersectionObserver(e => vis = e[0].isIntersecting).observe(card);
+    const r = (a, b) => a + Math.random() * (b - a);
+    const N = kind === 'sparks' ? 46 : 34;
+    const P = Array.from({ length: N }, () => kind === 'sparks'
+      ? { x: r(.42, .95), y: r(.35, 1), v: r(.0008, .0030), l: r(5, 14), a: r(.4, 1), ph: r(0, 6.28) }
+      : { x: r(0, 1), y: r(0, 1), s: r(2.5, 7), rot: r(0, 6.28), vr: r(-.03, .03), vx: r(-.0007, -.0001), vy: r(.0003, .0012), a: r(.25, .65) });
+    (function loop() {
+      requestAnimationFrame(loop);
+      if (!vis || document.hidden) return;
+      ctx.clearRect(0, 0, W, H);
+      if (kind === 'sparks') {
+        ctx.lineCap = 'round'; ctx.lineWidth = 1.6;
+        P.forEach(p => {
+          p.y -= p.v; p.x += Math.sin(p.ph += .03) * .0006 + .0002;
+          if (p.y < .08) { p.y = r(1, 1.08); p.x = r(.42, .95); }
+          const fade = Math.min(1, (p.y - .08) * 2.2) * p.a;
+          ctx.strokeStyle = `rgba(255,${(140 + p.a * 60) | 0},60,${fade})`;
+          ctx.shadowColor = 'rgba(255,140,40,.9)'; ctx.shadowBlur = 6;
+          ctx.beginPath(); ctx.moveTo(p.x * W, p.y * H); ctx.lineTo(p.x * W - p.l * .35, p.y * H + p.l); ctx.stroke();
         });
+      } else {
+        ctx.shadowBlur = 0;
+        P.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+          if (p.y > 1.05 || p.x < -.05) { p.y = -.05; p.x = r(.2, 1.05); }
+          ctx.fillStyle = `rgba(255,105,115,${p.a})`;
+          ctx.beginPath(); ctx.ellipse(p.x * W, p.y * H, p.s, p.s * .5, p.rot, 0, 6.283); ctx.fill();
+        });
+      }
+    })();
+  }
+  if (!reduce) $$('canvas.fx').forEach(startFx);
 
-        const MATRIX_CHARS = "01010101ABCDEFGHJKLMNOPQRSTUVWXYZｦｱｳｴｵｶｷｹｺｻｼｽｾｿﾀﾂﾃﾅﾆﾇﾈﾊﾋﾎﾏﾐﾑﾒﾓﾔﾕﾗﾘﾜ#$@%&*<>/\\";
-        const TARGET_NAME = "Pratik Ingale";
-
-        class TextScramble {
-            constructor(el) {
-                this.el = el;
-                this.chars = MATRIX_CHARS;
-                this.update = this.update.bind(this);
-            }
-
-            setText(newText) {
-                const oldText = this.el.innerText;
-                const length = Math.max(oldText.length, newText.length);
-                const promise = new Promise((resolve) => this.resolve = resolve);
-                this.queue = [];
-                for (let i = 0; i < length; i++) {
-                    const from = oldText[i] || '';
-                    const to = newText[i] || '';
-                    const start = Math.floor(Math.random() * 15);
-                    const end = start + Math.floor(Math.random() * 15) + 10;
-                    this.queue.push({ from, to, start, end, char: '' });
-                }
-                cancelAnimationFrame(this.frameRequest);
-                this.frame = 0;
-                this.update();
-                return promise;
-            }
-
-            update() {
-                let output = '';
-                let complete = 0;
-                for (let i = 0, n = this.queue.length; i < n; i++) {
-                    let { from, to, start, end, char } = this.queue[i];
-                    if (this.frame >= end) {
-                        complete++;
-                        output += to;
-                    } else if (this.frame >= start) {
-                        if (!char || Math.random() < 0.28) {
-                            char = this.randomChar();
-                            this.queue[i].char = char;
-                        }
-                        output += `<span class="text-matrix-400 opacity-90">${char}</span>`;
-                    } else {
-                        output += from;
-                    }
-                }
-                this.el.innerHTML = output;
-                if (complete === this.queue.length) {
-                    this.resolve();
-                } else {
-                    this.frameRequest = requestAnimationFrame(this.update);
-                    this.frame++;
-                }
-            }
-
-            randomChar() {
-                return this.chars[Math.floor(Math.random() * this.chars.length)];
-            }
-        }
-
-        let scramblers = [];
-
-        function initScramblers() {
-            if (scramblers.length > 0) return;
-            const elements = document.querySelectorAll('.matrix-scramble');
-            elements.forEach(el => {
-                const fx = new TextScramble(el);
-                scramblers.push(fx);
-                fx.setText(TARGET_NAME);
-
-                el.addEventListener('mouseenter', () => {
-                    fx.setText(TARGET_NAME);
-                });
-                el.addEventListener('click', () => {
-                    fx.setText(TARGET_NAME);
-                });
-            });
-
-            // Periodically re-trigger Matrix animation every 8 seconds
-            setInterval(() => {
-                scramblers.forEach(fx => fx.setText(TARGET_NAME));
-            }, 8000);
-        }
-
-        function triggerAllScrambles() {
-            scramblers.forEach(fx => fx.setText(TARGET_NAME));
-        }
-
-        function copyLink(text, btn) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Copied!</span>`;
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                }, 2000);
-            }).catch(err => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Copied!</span>`;
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                }, 2000);
-            });
-        }
-
-        function searchVirusTotal() {
-            const query = document.getElementById('vt-hash-input').value.trim();
-            if (query) {
-                window.open(`https://www.virustotal.com/gui/search/${encodeURIComponent(query)}`, '_blank');
-            } else {
-                alert('Please enter or paste an MD5, SHA256 file hash, or URL.');
-            }
-        }
-    </script>
+  /* ---------- intro ---------- */
+  const intro = $('#sys-intro');
+  let finished = false;
+  function finish() {
+    if (finished) return; finished = true;
+    intro.classList.add('hide');
+    setTimeout(() => intro.remove(), 1000);
+    document.body.classList.add('ready');
+    scrams.forEach((el, i) => setTimeout(() => scramble(el), 250 + i * 80));
+    setTimeout(() => toast('Quest accepted: analyze ' + stats.tasks + ' sandbox tasks.'), 900);
+    setTimeout(() => toast('Threat feed synced: ' + stats.urls + ' URLs tracked.'), 2000);
+  }
+  const type = (el, text, speed) => new Promise(res => {
+    let i = 0;
+    (function step() { el.textContent = text.slice(0, ++i); if (i < text.length) setTimeout(step, speed); else res(); })();
+  });
+  async function runIntro() {
+    const l1 = $('.l1', intro), l2 = $('.l2', intro), ar = $('.arise', intro);
+    await type(l1, '[SYSTEM] Analyst detected.', 30); if (finished) return;
+    l1.classList.remove('cursor-blink');
+    await type(l2, 'Initializing forensic interface...', 26);
+    await wait(250); if (finished) return;
+    ar.classList.add('show');
+    await wait(1500); finish();
+  }
+  intro.addEventListener('click', finish);
+  document.addEventListener('keydown', finish, { once: true });
+  // .ready class must sit on an ancestor of the cards
+  document.body.classList.remove('ready');
+  const stage = $('.stage');
+  const obs = new MutationObserver(() => { if (document.body.classList.contains('ready')) stage.classList.add('ready'); });
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  if (reduce) finish(); else runIntro();
+})();
+</script>
 </body>
 </html>
