@@ -63,9 +63,7 @@ This repository contains a full-featured, secure, web-based dashboard designed t
 1. **Open the File:**
    Double-click `index.html` to open it directly in any modern web browser, or launch it using VS Code Live Server.
 
-2. **Portal Authentication Credentials:**
-   * **Username:** `pratik`
-   * **Password:** `pratik_38`
+
 
 ---
 
